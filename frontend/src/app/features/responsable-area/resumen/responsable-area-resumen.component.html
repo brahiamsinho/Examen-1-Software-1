@@ -1,0 +1,25 @@
+<section class="admin-page">
+  <header class="admin-page-head">
+    <p class="admin-page-kicker">Resumen</p>
+    <h2 class="admin-page-title">Portal del responsable de área</h2>
+    <p class="admin-page-lead">
+      Este módulo concentra las vistas del actor <strong>RESPONSABLE_AREA</strong>: seguimiento de trámites, tareas
+      pendientes y métricas locales (a cablear con el backend cuando corresponda).
+    </p>
+  </header>
+
+  <div class="actor-card-grid ra-cards">
+    <a routerLink="/responsable-area/tramites" class="actor-card ra-card">
+      <span class="actor-card-title">Bandeja de trámites</span>
+      <span class="actor-card-hint">Listados y acciones por área</span>
+    </a>
+    <div class="actor-card actor-card--muted ra-card-muted">
+      <span class="actor-card-title">Indicadores</span>
+      <span class="actor-card-hint">Reservado para tableros del área</span>
+    </div>
+  </div>
+
+  @if (auth.getCorreo(); as c) {
+    <p class="actor-footnote">Conectado como {{ c }}.</p>
+  }
+</section>

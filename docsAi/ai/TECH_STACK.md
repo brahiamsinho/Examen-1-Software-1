@@ -25,6 +25,7 @@
 | FastAPI | 0.111 | Framework REST async |
 | Python | 3.12 | Lenguaje |
 | Pydantic | 2.7 | Validación de datos |
+| pydantic-settings | 2.2 | Configuración por variables de entorno |
 | Uvicorn | 0.29 | ASGI server |
 
 ## Infraestructura

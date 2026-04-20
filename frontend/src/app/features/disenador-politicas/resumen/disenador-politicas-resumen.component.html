@@ -1,0 +1,25 @@
+<section class="admin-page">
+  <header class="admin-page-head">
+    <p class="admin-page-kicker">Resumen</p>
+    <h2 class="admin-page-title">Portal del diseñador de políticas</h2>
+    <p class="admin-page-lead">
+      Este módulo agrupa las pantallas del actor <strong>DISENADOR_POLITICAS</strong>. Podés extenderlo con formularios,
+      listados y flujos de aprobación de políticas de negocio.
+    </p>
+  </header>
+
+  <div class="actor-card-grid">
+    <a routerLink="/disenador/politicas" class="actor-card">
+      <span class="actor-card-title">Catálogo de políticas</span>
+      <span class="actor-card-hint">Definición y versionado (próximos pasos)</span>
+    </a>
+    <div class="actor-card actor-card--muted">
+      <span class="actor-card-title">Plantillas</span>
+      <span class="actor-card-hint">Reservado para evolución del módulo</span>
+    </div>
+  </div>
+
+  @if (auth.getCorreo(); as c) {
+    <p class="actor-footnote">Conectado como {{ c }}.</p>
+  }
+</section>

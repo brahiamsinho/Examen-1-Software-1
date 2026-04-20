@@ -1,0 +1,56 @@
+.admin-kpi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.admin-kpi-card {
+  background: #fff;
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
+  padding: 1.1rem 1.15rem;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.05);
+  text-decoration: none;
+  color: inherit;
+  display: grid;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-kpi-card:hover {
+  border-color: #7dd3fc;
+  box-shadow: 0 10px 26px rgba(14, 116, 144, 0.12);
+  transform: translateY(-1px);
+}
+
+.admin-kpi-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.28);
+}
+
+.admin-kpi-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.admin-kpi-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.admin-kpi-hint {
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.admin-muted {
+  color: #64748b;
+}

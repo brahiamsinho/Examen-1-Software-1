@@ -1,0 +1,9 @@
+.admin-field-span2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 640px) {
+  .admin-field-span2 {
+    grid-column: span 1;
+  }
+}

@@ -1,0 +1,36 @@
+<section class="admin-page">
+  <header class="admin-page-head">
+    <p class="admin-page-kicker">Resumen</p>
+    <h2 class="admin-page-title">Operación del módulo de seguridad</h2>
+    <p class="admin-page-lead">
+      Gestioná usuarios, roles, permisos y consultá la bitácora de cambios administrativos desde el menú lateral.
+    </p>
+  </header>
+
+  @if (loading) {
+    <p class="admin-muted">Cargando métricas…</p>
+  } @else {
+    <div class="admin-kpi-grid">
+      <a routerLink="/admin/usuarios" class="admin-kpi-card">
+        <span class="admin-kpi-label">Usuarios</span>
+        <span class="admin-kpi-value">{{ totalUsuarios }}</span>
+        <span class="admin-kpi-hint">Alta, edición y baja</span>
+      </a>
+      <a routerLink="/admin/roles" class="admin-kpi-card">
+        <span class="admin-kpi-label">Roles</span>
+        <span class="admin-kpi-value">{{ totalRoles }}</span>
+        <span class="admin-kpi-hint">Asignación de permisos</span>
+      </a>
+      <a routerLink="/admin/permisos" class="admin-kpi-card">
+        <span class="admin-kpi-label">Permisos</span>
+        <span class="admin-kpi-value">{{ totalPermisos }}</span>
+        <span class="admin-kpi-hint">Catálogo del sistema</span>
+      </a>
+      <a routerLink="/admin/bitacora" class="admin-kpi-card">
+        <span class="admin-kpi-label">Bitácora</span>
+        <span class="admin-kpi-value">{{ totalBitacora }}</span>
+        <span class="admin-kpi-hint">Auditoría reciente</span>
+      </a>
+    </div>
+  }
+</section>

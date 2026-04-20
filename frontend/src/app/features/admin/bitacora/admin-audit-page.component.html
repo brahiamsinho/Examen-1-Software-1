@@ -1,0 +1,63 @@
+<section class="admin-page">
+  <header class="admin-page-head">
+    <p class="admin-page-kicker">Auditoría</p>
+    <h2 class="admin-page-title">Bitácora</h2>
+    <p class="admin-page-lead">Registro de acciones realizadas desde el panel de administración.</p>
+    <div class="admin-toolbar">
+      <button type="button" class="admin-secondary-btn" (click)="load()" [disabled]="loading">Actualizar</button>
+    </div>
+  </header>
+
+  @if (errorMsg) {
+    <p class="admin-alert" role="alert">{{ errorMsg }}</p>
+  }
+
+  <div class="admin-table-wrap">
+    <table class="admin-table admin-table--audit">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Actor</th>
+          <th>Acción</th>
+          <th>Entidad</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (b of rows; track b.id) {
+          <tr>
+            <td class="admin-mono">{{ b.fecha | date: 'short' }}</td>
+            <td>
+              <div class="admin-stack">
+                <span>{{ b.actorCorreo || '—' }}</span>
+                <small class="admin-muted-id">{{ b.actorUsuarioId }}</small>
+              </div>
+            </td>
+            <td><span class="admin-pill">{{ b.accion }}</span></td>
+            <td>{{ b.entidad }}</td>
+            <td class="admin-detail">{{ b.detalle }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">{{ loading ? 'Cargando…' : 'Sin registros.' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-pagination">
+    <button type="button" class="admin-secondary-btn" (click)="prev()" [disabled]="page <= 0 || loading">
+      Anterior
+    </button>
+    <span class="admin-page-meta">Página {{ page + 1 }} de {{ totalPages || 1 }} · {{ totalElements }} eventos</span>
+    <button
+      type="button"
+      class="admin-secondary-btn"
+      (click)="next()"
+      [disabled]="page >= totalPages - 1 || loading || totalPages === 0"
+    >
+      Siguiente
+    </button>
+  </div>
+</section>

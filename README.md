@@ -8,6 +8,7 @@ Sistema de gestión de trámites basado en políticas de negocio.
 |---|---|---|
 | Reverse Proxy | Nginx | 80 (expuesto) |
 | Frontend | Angular 17 | 80 (interno) |
+| App móvil cliente | Flutter (Dart) | fuera de Docker en desarrollo |
 | Backend principal | Spring Boot 3 + Java 21 | 8080 (interno) |
 | Microservicio IA | FastAPI + Python 3.12 | 8000 (interno) |
 | Base de datos | MongoDB 7 | 27017 (interno) |
@@ -73,9 +74,28 @@ docker compose up --build -d
 |---|---|
 | Frontend Angular | http://localhost |
 | Nginx health | http://localhost/health |
-| Spring Boot health | http://localhost/backend/api/health |
-| FastAPI health | http://localhost/fastapi/api/v1/health |
+| Spring Boot health | http://localhost/backend/health |
+| FastAPI health | http://localhost/fastapi/health (alias: `/fastapi/api/health`) |
 | FastAPI docs (Swagger) | http://localhost/fastapi/docs |
+
+### Acceso por rol (Angular + Spring)
+
+- **Selector de portales:** `http://localhost/acceso` (o `http://localhost:4200/acceso` con `ng serve`).
+- **Administrador:** `/acceso/administrador`
+- **Diseñador de políticas de negocio:** `/acceso/politicas`
+- **Responsable de área:** `/acceso/area`
+- **Cliente (móvil):** app Flutter en `mobile/tramites_cliente` (mismo endpoint `POST /api/auth/login` con `portalRol: CLIENTE`).
+
+Si `APP_DEV_AUTH_SEED_ENABLED=true` y Mongo está vacío en roles, Spring inserta usuarios demo (contraseña **`demo123`**):
+
+| Rol | Correo |
+|-----|--------|
+| ADMINISTRADOR | `admin@tramites.local` |
+| DISENADOR_POLITICAS | `politicas@tramites.local` |
+| RESPONSABLE_AREA | `area@tramites.local` |
+| CLIENTE | `cliente@tramites.local` |
+
+API: `POST /backend/api/auth/login` (vía Nginx) cuerpo JSON `{ "correo", "contrasena", "portalRol" }`. Respuesta incluye `accessToken` (Bearer) para llamadas autenticadas.
 
 ---
 
@@ -115,14 +135,15 @@ docker exec -it tramites-redis redis-cli
 
 ```
 examen-1-software/
-├── frontend/       # Angular 17 SPA
-├── backend/     # Spring Boot 3 - Backend principal
-├── fastapi/   # FastAPI - Microservicio analítica/IA
-├── nginx/                  # Reverse proxy config
-├── docsAi/                 # Memoria persistente del agente (Markdown)
-│   └── ai/
-├── docker-compose.yml      # Orquestación de servicios
-├── .env.example            # Variables de entorno (ejemplo)
+├── frontend/          # Angular 17 SPA (admin / diseñador / responsable)
+├── mobile/            # Flutter — app cliente
+│   └── tramites_cliente/
+├── backend/           # Spring Boot 3 - Backend principal
+├── fastapi/           # FastAPI - Microservicio analítica/IA
+├── nginx/             # Reverse proxy config
+├── docs/ai/           # Memoria persistente del agente (Markdown)
+├── docker-compose.yml
+├── .env.example
 └── .gitignore
 ```
 

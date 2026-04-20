@@ -1,0 +1,341 @@
+// init-mongo.js
+db = db.getSiblingDB("gestion_tramites");
+
+const ESTADO_POLITICA = ["BORRADOR", "PUBLICADA", "INACTIVA"];
+const TIPO_NODO = ["INICIO", "ACTIVIDAD", "DECISION", "PARALELO", "FIN"];
+const TIPO_FLUJO = ["SECUENCIAL", "ALTERNATIVO", "PARALELO", "MULTILINEAL"];
+const ESTADO_TRAMITE = [
+  "REGISTRADO",
+  "EN_PROCESO",
+  "OBSERVADO",
+  "DERIVADO",
+  "APROBADO",
+  "RECHAZADO",
+  "CERRADO"
+];
+const PRIORIDAD_TRAMITE = ["BAJA", "MEDIA", "ALTA"];
+const TIPO_NOTIFICACION = [
+  "AVANCE",
+  "OBSERVACION",
+  "REQUERIMIENTO",
+  "APROBACION",
+  "RECHAZO",
+  "CIERRE"
+];
+
+function ensureCollection(name, validator) {
+  const exists = db.getCollectionNames().includes(name);
+  if (!exists) {
+    db.createCollection(name, {
+      validator,
+      validationLevel: "strict",
+      validationAction: "error"
+    });
+  } else {
+    db.runCommand({
+      collMod: name,
+      validator,
+      validationLevel: "strict",
+      validationAction: "error"
+    });
+  }
+}
+
+// permisos
+ensureCollection("permisos", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["nombre", "descripcion"],
+    properties: {
+      nombre: { bsonType: "string" },
+      descripcion: { bsonType: "string" }
+    }
+  }
+});
+db.permisos.createIndex({ nombre: 1 }, { unique: true });
+
+// roles
+ensureCollection("roles", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["nombre", "descripcion", "permisoIds"],
+    properties: {
+      nombre: { bsonType: "string" },
+      descripcion: { bsonType: "string" },
+      permisoIds: {
+        bsonType: "array",
+        items: { bsonType: "objectId" }
+      }
+    }
+  }
+});
+db.roles.createIndex({ nombre: 1 }, { unique: true });
+
+// areas
+ensureCollection("areas", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["nombre", "descripcion", "estado"],
+    properties: {
+      nombre: { bsonType: "string" },
+      descripcion: { bsonType: "string" },
+      estado: { bsonType: "bool" }
+    }
+  }
+});
+db.areas.createIndex({ nombre: 1 }, { unique: true });
+
+// usuarios
+ensureCollection("usuarios", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: [
+      "nombres",
+      "apellidos",
+      "correo",
+      "contrasena",
+      "telefono",
+      "estado",
+      "rolId"
+    ],
+    properties: {
+      nombres: { bsonType: "string" },
+      apellidos: { bsonType: "string" },
+      correo: { bsonType: "string" },
+      contrasena: { bsonType: "string" },
+      telefono: { bsonType: "string" },
+      estado: { bsonType: "bool" },
+      rolId: { bsonType: "objectId" },
+      areaId: { bsonType: ["objectId", "null"] }
+    }
+  }
+});
+db.usuarios.createIndex({ correo: 1 }, { unique: true });
+db.usuarios.createIndex({ rolId: 1, areaId: 1 });
+
+// politicas_negocio
+ensureCollection("politicas_negocio", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["nombre", "descripcion", "version", "estado", "fechaCreacion", "nodos", "conexiones"],
+    properties: {
+      nombre: { bsonType: "string" },
+      descripcion: { bsonType: "string" },
+      version: { bsonType: "int" },
+      estado: { enum: ESTADO_POLITICA },
+      fechaCreacion: { bsonType: "date" },
+      nodos: {
+        bsonType: "array",
+        items: {
+          bsonType: "object",
+          required: ["idNodo", "nombre", "tipoNodo", "orden", "esInicial", "esFinal"],
+          properties: {
+            idNodo: { bsonType: "string" },
+            nombre: { bsonType: "string" },
+            tipoNodo: { enum: TIPO_NODO },
+            orden: { bsonType: "int" },
+            condicion: { bsonType: ["string", "null"] },
+            esInicial: { bsonType: "bool" },
+            esFinal: { bsonType: "bool" },
+            areaId: { bsonType: ["objectId", "null"] },
+            asignacionesResponsable: {
+              bsonType: "array",
+              items: {
+                bsonType: "object",
+                required: ["usuarioId", "areaId", "fechaAsignacion", "estado"],
+                properties: {
+                  usuarioId: { bsonType: "objectId" },
+                  areaId: { bsonType: "objectId" },
+                  fechaAsignacion: { bsonType: "date" },
+                  estado: { bsonType: "bool" }
+                }
+              }
+            }
+          }
+        }
+      },
+      conexiones: {
+        bsonType: "array",
+        items: {
+          bsonType: "object",
+          required: ["idConexion", "tipoFlujo", "origenNodoId", "destinoNodoId"],
+          properties: {
+            idConexion: { bsonType: "string" },
+            tipoFlujo: { enum: TIPO_FLUJO },
+            condicion: { bsonType: ["string", "null"] },
+            origenNodoId: { bsonType: "string" },
+            destinoNodoId: { bsonType: "string" }
+          }
+        }
+      }
+    }
+  }
+});
+db.politicas_negocio.createIndex({ nombre: 1, version: 1 }, { unique: true });
+db.politicas_negocio.createIndex({ estado: 1 });
+
+// tramites
+ensureCollection("tramites", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: [
+      "codigo",
+      "asunto",
+      "descripcion",
+      "fechaRegistro",
+      "prioridad",
+      "estado",
+      "numeroTurno",
+      "politicaId",
+      "clienteId"
+    ],
+    properties: {
+      codigo: { bsonType: "string" },
+      asunto: { bsonType: "string" },
+      descripcion: { bsonType: "string" },
+      fechaRegistro: { bsonType: "date" },
+      prioridad: { enum: PRIORIDAD_TRAMITE },
+      estado: { enum: ESTADO_TRAMITE },
+      numeroTurno: { bsonType: "int" },
+      politicaId: { bsonType: "objectId" },
+      clienteId: { bsonType: "objectId" },
+      nodoActualId: { bsonType: ["string", "null"] },
+      areaActualId: { bsonType: ["objectId", "null"] }
+    }
+  }
+});
+db.tramites.createIndex({ codigo: 1 }, { unique: true });
+db.tramites.createIndex({ estado: 1, prioridad: 1, fechaRegistro: 1, numeroTurno: 1 }); // FIFO
+db.tramites.createIndex({ clienteId: 1, fechaRegistro: -1 });
+
+// recorridos_tramite
+ensureCollection("recorridos_tramite", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["tramiteId", "nodoId", "fechaEntrada", "estado"],
+    properties: {
+      tramiteId: { bsonType: "objectId" },
+      nodoId: { bsonType: "string" },
+      areaId: { bsonType: ["objectId", "null"] },
+      usuarioId: { bsonType: ["objectId", "null"] },
+      fechaEntrada: { bsonType: "date" },
+      fechaSalida: { bsonType: ["date", "null"] },
+      estado: { bsonType: "string" },
+      observacion: { bsonType: ["string", "null"] }
+    }
+  }
+});
+db.recorridos_tramite.createIndex({ tramiteId: 1, fechaEntrada: 1 });
+db.recorridos_tramite.createIndex({ areaId: 1, estado: 1 });
+
+// formularios_tramite
+ensureCollection("formularios_tramite", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["tramiteId", "titulo", "tipo", "contenido", "fechaRegistro"],
+    properties: {
+      tramiteId: { bsonType: "objectId" },
+      nodoId: { bsonType: ["string", "null"] },
+      titulo: { bsonType: "string" },
+      tipo: { bsonType: "string" },
+      contenido: { bsonType: "string" },
+      fechaRegistro: { bsonType: "date" }
+    }
+  }
+});
+db.formularios_tramite.createIndex({ tramiteId: 1, fechaRegistro: -1 });
+
+// documentos_tramite
+ensureCollection("documentos_tramite", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["tramiteId", "nombreArchivo", "tipoArchivo", "rutaArchivo", "fechaCarga", "estado"],
+    properties: {
+      tramiteId: { bsonType: "objectId" },
+      nodoId: { bsonType: ["string", "null"] },
+      nombreArchivo: { bsonType: "string" },
+      tipoArchivo: { bsonType: "string" },
+      rutaArchivo: { bsonType: "string" },
+      fechaCarga: { bsonType: "date" },
+      estado: { bsonType: "string" }
+    }
+  }
+});
+db.documentos_tramite.createIndex({ tramiteId: 1, fechaCarga: -1 });
+
+// notificaciones
+ensureCollection("notificaciones", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["tramiteId", "usuarioId", "mensaje", "tipo", "fechaEnvio", "leida"],
+    properties: {
+      tramiteId: { bsonType: "objectId" },
+      usuarioId: { bsonType: "objectId" },
+      mensaje: { bsonType: "string" },
+      tipo: { enum: TIPO_NOTIFICACION },
+      fechaEnvio: { bsonType: "date" },
+      leida: { bsonType: "bool" }
+    }
+  }
+});
+db.notificaciones.createIndex({ usuarioId: 1, leida: 1, fechaEnvio: -1 });
+
+// bitacora
+ensureCollection("bitacora", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["usuarioId", "accion", "descripcion", "fechaHora"],
+    properties: {
+      usuarioId: { bsonType: "objectId" },
+      accion: { bsonType: "string" },
+      descripcion: { bsonType: "string" },
+      fechaHora: { bsonType: "date" },
+      entidadTipo: { bsonType: ["string", "null"] },
+      entidadId: { bsonType: ["objectId", "string", "null"] },
+      tramiteId: { bsonType: ["objectId", "null"] },
+      politicaId: { bsonType: ["objectId", "null"] }
+    }
+  }
+});
+db.bitacora.createIndex({ usuarioId: 1, fechaHora: -1 });
+db.bitacora.createIndex({ tramiteId: 1, fechaHora: -1 });
+db.bitacora.createIndex({ politicaId: 1, fechaHora: -1 });
+
+// analisis_rendimiento
+ensureCollection("analisis_rendimiento", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["politicaId", "fechaAnalisis", "tiempoPromedio", "cuelloBotellaDetectado"],
+    properties: {
+      politicaId: { bsonType: "objectId" },
+      tramiteIds: {
+        bsonType: "array",
+        items: { bsonType: "objectId" }
+      },
+      fechaAnalisis: { bsonType: "date" },
+      tiempoPromedio: { bsonType: ["double", "int", "long", "decimal"] },
+      cuelloBotellaDetectado: { bsonType: "string" },
+      observacion: { bsonType: ["string", "null"] }
+    }
+  }
+});
+db.analisis_rendimiento.createIndex({ politicaId: 1, fechaAnalisis: -1 });
+
+// recomendaciones_politica
+ensureCollection("recomendaciones_politica", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["politicaId", "usuarioId", "fechaGeneracion", "politicaSugerida", "probabilidadExito", "tiempoEstimado"],
+    properties: {
+      politicaId: { bsonType: "objectId" },
+      usuarioId: { bsonType: "objectId" },
+      fechaGeneracion: { bsonType: "date" },
+      politicaSugerida: { bsonType: "string" },
+      probabilidadExito: { bsonType: ["double", "int", "long", "decimal"] },
+      tiempoEstimado: { bsonType: ["double", "int", "long", "decimal"] },
+      observacion: { bsonType: ["string", "null"] }
+    }
+  }
+});
+db.recomendaciones_politica.createIndex({ usuarioId: 1, fechaGeneracion: -1 });
+db.recomendaciones_politica.createIndex({ politicaId: 1, fechaGeneracion: -1 });

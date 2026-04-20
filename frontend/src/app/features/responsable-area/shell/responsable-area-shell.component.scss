@@ -1,0 +1,57 @@
+/* Variante esmeralda sobre la misma base `.modulo-*` */
+.ra-app.modulo-app {
+  background: #ecfdf5;
+}
+
+.ra-sidebar.modulo-sidebar {
+  background: linear-gradient(180deg, #064e3b 0%, #022c22 100%);
+  border-right-color: #047857;
+}
+
+.ra-sidebar .modulo-sidebar-brand {
+  border-bottom-color: rgba(110, 231, 183, 0.25);
+}
+
+.ra-sidebar .modulo-sidebar-logo {
+  color: #6ee7b7;
+}
+
+.ra-sidebar .modulo-sidebar-kicker {
+  color: #a7f3d0;
+}
+
+.ra-topbar.modulo-topbar {
+  border-bottom-color: #a7f3d0;
+}
+
+.ra-btn.modulo-btn-ghost {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.ra-btn.modulo-btn-ghost:hover {
+  background: #a7f3d0;
+}
+
+.ra-sidebar .modulo-nav-item {
+  color: #d1fae5;
+}
+
+.ra-sidebar .modulo-nav-item:hover {
+  background: rgba(16, 185, 129, 0.2);
+  color: #fff;
+}
+
+.ra-sidebar .modulo-nav-item.is-active {
+  background: rgba(16, 185, 129, 0.32);
+  color: #ecfdf5;
+}
+
+.ra-sidebar .modulo-sidebar-footer {
+  color: #a7f3d0;
+}
+
+.ra-sidebar .modulo-sidebar-footer:hover {
+  background: rgba(6, 95, 70, 0.35);
+  color: #ecfdf5;
+}

@@ -1,0 +1,62 @@
+<div class="shell">
+  <header class="shell-header">
+    <div class="shell-brand">
+      <span class="shell-logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="6" width="24" height="20" rx="3" stroke="currentColor" stroke-width="2" />
+          <path d="M10 14h12M10 18h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="shell-title">{{ appTitle }}</span>
+    </div>
+    <nav class="shell-nav" aria-label="Principal">
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="shell-nav-link"
+      >
+        Inicio
+      </a>
+      @if (auth.isAdministrador()) {
+        <a
+          routerLink="/admin"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="shell-nav-link"
+        >
+          Administración
+        </a>
+      }
+      @if (auth.isDisenadorPoliticas()) {
+        <a
+          routerLink="/disenador"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="shell-nav-link"
+        >
+          Políticas
+        </a>
+      }
+      @if (auth.isResponsableArea()) {
+        <a
+          routerLink="/responsable-area"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="shell-nav-link"
+        >
+          Mi área
+        </a>
+      }
+      <button type="button" class="shell-nav-link shell-logout" (click)="logout()">Salir</button>
+    </nav>
+  </header>
+
+  <main class="shell-main">
+    <router-outlet />
+  </main>
+
+  <footer class="shell-footer">
+    <span>INF 422 · Base frontend Angular</span>
+  </footer>
+</div>

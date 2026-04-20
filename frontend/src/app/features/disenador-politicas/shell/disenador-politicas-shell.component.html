@@ -1,0 +1,47 @@
+<div class="modulo-app">
+  <aside class="modulo-sidebar" aria-label="Navegación diseñador de políticas">
+    <div class="modulo-sidebar-brand">
+      <span class="modulo-sidebar-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M6 4h12v4H6V4zm0 6h12v4H6v-4zm0 6h8v4H6v-4z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <div class="modulo-sidebar-titles">
+        <span class="modulo-sidebar-kicker">Diseño</span>
+        <span class="modulo-sidebar-title">Políticas</span>
+      </div>
+    </div>
+
+    <nav class="modulo-nav">
+      <a routerLink="/disenador/resumen" routerLinkActive="is-active" class="modulo-nav-item">Resumen</a>
+      <a routerLink="/disenador/politicas" routerLinkActive="is-active" class="modulo-nav-item">Políticas</a>
+    </nav>
+
+    <a routerLink="/dashboard" class="modulo-sidebar-footer">Volver al portal</a>
+  </aside>
+
+  <div class="modulo-main-col">
+    <header class="modulo-topbar">
+      <div class="modulo-topbar-text">
+        <h1 class="modulo-topbar-title">Diseñador de políticas</h1>
+        <p class="modulo-topbar-sub">
+          @if (auth.getCorreo(); as c) {
+            <span>Sesión: {{ c }}</span>
+          } @else {
+            <span>Sesión activa</span>
+          }
+        </p>
+      </div>
+      <button type="button" class="modulo-btn modulo-btn-ghost" (click)="auth.logout()">Cerrar sesión</button>
+    </header>
+
+    <main class="modulo-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

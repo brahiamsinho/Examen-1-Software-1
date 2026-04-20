@@ -104,7 +104,7 @@ app.add_middleware(
 
 # Include routers
 from app.api.v1.router import api_router
-app.include_router(api_router, prefix="/api/v1")
+app.include_router(api_router, prefix="/api")
 
 # core/config.py
 from pydantic_settings import BaseSettings
@@ -115,7 +115,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    API_V1_STR: str = "/api/v1"
+    API_PREFIX: str = "/api"
 
     class Config:
         env_file = ".env"
@@ -329,7 +329,7 @@ user_service = UserService()
 ### Pattern 4: API Endpoints with Dependencies
 
 ```python
-# api/v1/endpoints/users.py
+# api/endpoints/users.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
@@ -526,7 +526,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_create_user(client):
     response = await client.post(
-        "/api/v1/users/",
+        "/api/users/",
         json={
             "email": "test@example.com",
             "password": "testpass123",

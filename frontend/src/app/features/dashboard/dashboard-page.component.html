@@ -1,0 +1,59 @@
+<section class="page">
+  <header class="page-header">
+    <p class="page-kicker">Centro de operaciones</p>
+    <h1 class="page-title">Panel de tramites</h1>
+    <p class="page-lead">
+      Vista base del sistema para gestionar modulos, revisar estado de servicios y preparar la operacion diaria.
+    </p>
+    <button type="button" class="btn btn-primary" (click)="probeServices()">Actualizar estado de servicios</button>
+  </header>
+
+  <div class="page-grid page-grid--wide">
+    <article class="card">
+      <h2 class="card-title">Modulos funcionales</h2>
+      <p class="card-text">
+        Estructura modular prevista para escalar sin acoplar interfaces ni reglas de negocio.
+      </p>
+      <ul class="module-grid" aria-label="Modulos del sistema">
+        @for (module of modules; track module.title) {
+          <li class="module-card">
+            <h3 class="module-title">{{ module.title }}</h3>
+            <p class="module-description">{{ module.description }}</p>
+            <span class="module-tag">{{ module.tag }}</span>
+          </li>
+        }
+      </ul>
+    </article>
+
+    <article class="card">
+      <h2 class="card-title">Conectividad (desarrollo)</h2>
+      <p class="card-text">
+        Comprobacion de salud via Nginx o
+        <code>proxy.conf.json</code>
+        al ejecutar
+        <code>ng serve</code>
+        para validar integracion temprana.
+      </p>
+      <ul class="probe-list" aria-label="Estado de servicios">
+        <li class="probe-row">
+          <span class="probe-label">Spring Boot</span>
+          <span class="probe-pill" [class.probe-pill--ok]="springState === 'ok'" [class.probe-pill--err]="springState === 'error'" [class.probe-pill--load]="springState === 'loading'">
+            {{ getProbeLabel(springState) }}
+          </span>
+        </li>
+        <li class="probe-row">
+          <span class="probe-label">FastAPI</span>
+          <span class="probe-pill" [class.probe-pill--ok]="fastApiState === 'ok'" [class.probe-pill--err]="fastApiState === 'error'" [class.probe-pill--load]="fastApiState === 'loading'">
+            {{ getProbeLabel(fastApiState) }}
+          </span>
+        </li>
+      </ul>
+      @if (springDetail) {
+        <p class="card-meta">Backend: {{ springDetail.service }} · {{ springDetail.status }}</p>
+      }
+      @if (fastApiDetail) {
+        <p class="card-meta">FastAPI: {{ fastApiDetail.service }} · {{ fastApiDetail.status }}</p>
+      }
+    </article>
+  </div>
+</section>

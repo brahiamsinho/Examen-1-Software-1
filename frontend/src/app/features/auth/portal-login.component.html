@@ -1,0 +1,46 @@
+<div class="login-page">
+  <div class="login-card">
+    <p class="login-kicker">Ingreso seguro</p>
+    <p class="login-back"><a routerLink="/acceso" class="login-back-link">Volver a portales</a></p>
+    <h1 class="login-title">{{ portalTitulo }}</h1>
+    <p class="login-sub">Ingresa tus credenciales para acceder al panel correspondiente.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+      <label class="login-label" for="correo">Correo</label>
+      <input
+        id="correo"
+        type="email"
+        class="login-input"
+        formControlName="correo"
+        autocomplete="username"
+        aria-describedby="correo-help"
+      />
+      <p id="correo-help" class="login-help">Usa el correo registrado para este portal.</p>
+      @if (form.controls.correo.touched && form.controls.correo.invalid) {
+        <p class="login-field-error">Correo inválido.</p>
+      }
+
+      <label class="login-label" for="contrasena">Contraseña</label>
+      <input
+        id="contrasena"
+        type="password"
+        class="login-input"
+        formControlName="contrasena"
+        autocomplete="current-password"
+        aria-describedby="contrasena-help"
+      />
+      <p id="contrasena-help" class="login-help">La contrasena debe tener al menos 4 caracteres.</p>
+      @if (form.controls.contrasena.touched && form.controls.contrasena.invalid) {
+        <p class="login-field-error">Contrasena requerida (min. 4 caracteres).</p>
+      }
+
+      @if (errorMsg) {
+        <p class="login-error" role="alert">{{ errorMsg }}</p>
+      }
+
+      <button type="submit" class="login-submit" [disabled]="loading">
+        {{ loading ? 'Ingresando…' : 'Ingresar' }}
+      </button>
+    </form>
+  </div>
+</div>

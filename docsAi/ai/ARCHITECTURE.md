@@ -22,7 +22,7 @@ FastAPI actúa como servicio especializado para analítica/IA, separado por resp
 [Nginx :80]  ← único punto de entrada
     ├── /              → [Angular :80]
     ├── /backend/api/  → [Spring Boot :8080]
-    └── /fastapi/api/  → [FastAPI :8000]
+    └── /fastapi/      → [FastAPI :8000]
                                │
                     [MongoDB :27017] [Redis :6379]
 ```
@@ -40,10 +40,14 @@ FastAPI actúa como servicio especializado para analítica/IA, separado por resp
 - [futuro] modules/     → módulos de dominio (tramites, usuarios, etc.)
 - [futuro] config/      → configuración de seguridad, CORS, Redis
 
-### FastAPI (microservicio)
-- app/api/v1/           → endpoints versionados
-- [futuro] app/services/→ lógica analítica, ML
-- [futuro] app/models/  → esquemas Pydantic
+### FastAPI (microservicio IA / analítica)
+- `app/main.py`        → factory de app, `/health` canónico
+- `app/core/`          → configuración (`Settings`) y logging
+- `app/middleware/`    → contexto de request (tiempos, `X-Request-ID`) base observabilidad
+- `app/api/v1/` (paquete Python) → router montado bajo prefijo `/api` (p. ej. health alias)
+- `app/schemas/`       → modelos Pydantic compartidos
+- `app/domain/bottlenecks/` → contratos y servicio stub (cuellos de botella)
+- `app/domain/recommendations/` → contratos y servicio stub (recomendaciones)
 
 ## Red interna Docker
 Todos los servicios en red `tramites-net`.

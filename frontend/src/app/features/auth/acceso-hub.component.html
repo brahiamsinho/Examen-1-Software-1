@@ -1,0 +1,33 @@
+<div class="acceso-page">
+  <div class="acceso-card">
+    <p class="acceso-kicker">Acceso por rol</p>
+    <h1 class="acceso-title">{{ appTitle }}</h1>
+    <p class="acceso-lead">Elegi el portal correspondiente para iniciar sesion de forma segura.</p>
+
+    <ul class="acceso-list">
+      <li>
+        <a routerLink="/acceso/administrador" class="acceso-link">
+          <span class="acceso-link-label">Administrador</span>
+          <span class="acceso-hint">Gestion global, usuarios y supervision.</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/acceso/politicas" class="acceso-link">
+          <span class="acceso-link-label">Disenador de politicas de negocio</span>
+          <span class="acceso-hint">Modelado y versionado de flujos.</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/acceso/area" class="acceso-link">
+          <span class="acceso-link-label">Responsable de area</span>
+          <span class="acceso-hint">Bandeja operativa y tareas del departamento.</span>
+        </a>
+      </li>
+    </ul>
+
+    <p class="acceso-flutter">
+      <strong>Cliente / solicitante:</strong> el seguimiento del tramite va en la app movil
+      <strong>Flutter</strong> (mismo backend y login con <code>portalRol: CLIENTE</code>).
+    </p>
+  </div>
+</div>

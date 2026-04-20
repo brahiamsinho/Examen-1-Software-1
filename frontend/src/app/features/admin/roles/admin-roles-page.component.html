@@ -1,0 +1,85 @@
+<section class="admin-page">
+  <header class="admin-page-head">
+    <p class="admin-page-kicker">Seguridad</p>
+    <h2 class="admin-page-title">Roles</h2>
+    <p class="admin-page-lead">Definí roles del sistema y asigná permisos del catálogo.</p>
+    <div class="admin-toolbar">
+      <button type="button" class="admin-primary-btn" (click)="toggleCreate()">
+        {{ showCreate ? 'Cerrar' : 'Nuevo rol' }}
+      </button>
+      <button type="button" class="admin-secondary-btn" (click)="reloadAll()" [disabled]="loading">Actualizar</button>
+    </div>
+  </header>
+
+  @if (errorMsg) {
+    <p class="admin-alert" role="alert">{{ errorMsg }}</p>
+  }
+
+  @if (showCreate) {
+    <div class="admin-panel">
+      <h3 class="admin-panel-title">Crear rol</h3>
+      <div class="admin-form-grid">
+        <label class="admin-field">
+          <span>Código (MAYÚSCULAS)</span>
+          <input type="text" [(ngModel)]="createCodigo" name="rc_cod" />
+        </label>
+        <label class="admin-field">
+          <span>Nombre</span>
+          <input type="text" [(ngModel)]="createNombre" name="rc_nom" />
+        </label>
+      </div>
+      <button type="button" class="admin-primary-btn" (click)="submitCreate()">Guardar</button>
+    </div>
+  }
+
+  @if (editing) {
+    <div class="admin-panel">
+      <h3 class="admin-panel-title">Permisos del rol {{ editing.codigo }}</h3>
+      <div class="admin-perm-grid">
+        @for (p of permisos; track p.id) {
+          <label class="admin-perm-item">
+            <input type="checkbox" [(ngModel)]="selectedPermisos[p.codigo]" [name]="'perm_' + p.id" />
+            <span>
+              <strong>{{ p.codigo }}</strong>
+              <small>{{ p.nombre }} · {{ p.modulo }}</small>
+            </span>
+          </label>
+        }
+      </div>
+      <div class="admin-inline-actions">
+        <button type="button" class="admin-primary-btn" (click)="savePermisos()">Guardar permisos</button>
+        <button type="button" class="admin-secondary-btn" (click)="cancelEdit()">Cancelar</button>
+      </div>
+    </div>
+  }
+
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Permisos</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of roles; track r.id) {
+          <tr>
+            <td><span class="admin-pill">{{ r.codigo }}</span></td>
+            <td>{{ r.nombre }}</td>
+            <td>{{ r.permisoCodigos.length }} asignados</td>
+            <td class="admin-row-actions">
+              <button type="button" class="admin-linkish" (click)="startEdit(r)">Permisos</button>
+              <button type="button" class="admin-linkish danger" (click)="remove(r)">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">{{ loading ? 'Cargando…' : 'Sin roles.' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -8,21 +8,25 @@
 - [ ] Crear los primeros endpoints CRUD de trámites
 
 ## Prioridad ALTA (Etapa 1 — Seguridad)
-- [ ] Implementar Spring Security + JWT
-- [ ] Crear entidad Usuario con roles (ADMIN, OPERADOR, CIUDADANO)
+- [x] Implementar base de Spring Security + JWT
+- [x] Implementar semilla idempotente de actores demo (roles + usuarios por portal)
+- [ ] Crear entidad Usuario completa con permisos/claims de negocio
 - [ ] Proteger endpoints con autorización basada en roles
 - [ ] Almacenar sesiones/tokens en Redis
 
 ## Prioridad MEDIA (Etapa 2 — Frontend)
-- [ ] Crear módulo de autenticación (login/logout)
+- [x] Refresh visual base (acceso/login/dashboard/shell) con foco en accesibilidad
+- [ ] Completar modulo de autenticacion con recuperacion de sesion, estados vacios y mensajes de error por codigo
 - [ ] Crear módulo de gestión de trámites
-- [ ] Implementar guards de rutas Angular
+- [x] Implementar guard base de rutas Angular
 - [ ] Conectar Angular con endpoints reales del backend
+- [ ] Agregar pruebas unitarias para formularios de login y tarjeta de estado de servicios
 
 ## Prioridad MEDIA (Etapa 2 — FastAPI)
-- [ ] Definir qué analítica necesita el sistema
-- [ ] Conectar FastAPI a MongoDB para consultas analíticas
-- [ ] Agregar primer endpoint de análisis de trámites
+- [x] Esqueleto modular: `/health`, settings, middleware de tiempos/request-id, dominios stub
+- [ ] Definir contratos API (v1) entre Spring Boot y FastAPI (analítica, recomendaciones)
+- [ ] Conectar FastAPI a MongoDB solo para lecturas analíticas (si aplica)
+- [ ] Primer endpoint de análisis (datos agregados, sin ML) y pruebas de integración
 
 ## Prioridad BAJA (Etapa 3 — Producción)
 - [ ] Configurar Azure VM
@@ -32,7 +36,6 @@
 - [ ] Agregar pipeline CI/CD básico (GitHub Actions)
 
 ## Deuda técnica conocida
-- Angular: aún no tiene `package-lock.json` (se genera al hacer `npm install`)
 - Tests: ningún test implementado todavía
 - CORS: configuración permisiva en desarrollo, debe restringirse en prod
 - Redis: sin autenticación en desarrollo, debe configurarse en prod

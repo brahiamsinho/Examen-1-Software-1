@@ -61,5 +61,4 @@ yarn-debug.log*
 yarn-error.log*
 
 # ─── Datos locales / artefactos ─────────────────────────────
-script.db
 *.local.db

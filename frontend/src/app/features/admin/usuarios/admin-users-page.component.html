@@ -1,0 +1,145 @@
+<section class="admin-page">
+  <header class="admin-page-head">
+    <p class="admin-page-kicker">Seguridad</p>
+    <h2 class="admin-page-title">Usuarios</h2>
+    <p class="admin-page-lead">Alta, edición y baja de cuentas con rol asignado.</p>
+    <div class="admin-toolbar">
+      <button type="button" class="admin-primary-btn" (click)="toggleCreate()">
+        {{ showCreate ? 'Cerrar formulario' : 'Nuevo usuario' }}
+      </button>
+      <button type="button" class="admin-secondary-btn" (click)="load()" [disabled]="loading">Actualizar</button>
+    </div>
+  </header>
+
+  @if (errorMsg) {
+    <p class="admin-alert" role="alert">{{ errorMsg }}</p>
+  }
+
+  @if (showCreate) {
+    <div class="admin-panel">
+      <h3 class="admin-panel-title">Crear usuario</h3>
+      <div class="admin-form-grid">
+        <label class="admin-field">
+          <span>Correo</span>
+          <input type="email" [(ngModel)]="create.correo" name="c_correo" autocomplete="off" />
+        </label>
+        <label class="admin-field">
+          <span>Contraseña</span>
+          <input type="password" [(ngModel)]="create.contrasena" name="c_pass" autocomplete="new-password" />
+        </label>
+        <label class="admin-field">
+          <span>Nombres</span>
+          <input type="text" [(ngModel)]="create.nombres" name="c_nom" />
+        </label>
+        <label class="admin-field">
+          <span>Apellidos</span>
+          <input type="text" [(ngModel)]="create.apellidos" name="c_ape" />
+        </label>
+        <label class="admin-field">
+          <span>Teléfono</span>
+          <input type="text" [(ngModel)]="create.telefono" name="c_tel" />
+        </label>
+        <label class="admin-field">
+          <span>Rol</span>
+          <select [(ngModel)]="create.rolCodigo" name="c_rol">
+            @for (r of roles; track r.id) {
+              <option [value]="r.codigo">{{ r.codigo }} — {{ r.nombre }}</option>
+            }
+          </select>
+        </label>
+        <label class="admin-field admin-field-inline">
+          <input type="checkbox" [(ngModel)]="create.estado" name="c_est" />
+          <span>Activo</span>
+        </label>
+      </div>
+      <button type="button" class="admin-primary-btn" (click)="submitCreate()">Guardar</button>
+    </div>
+  }
+
+  @if (editing) {
+    <div class="admin-panel">
+      <h3 class="admin-panel-title">Editar {{ editing.correo }}</h3>
+      <div class="admin-form-grid">
+        <label class="admin-field">
+          <span>Nombres</span>
+          <input type="text" [(ngModel)]="editDraft.nombres" name="e_nom" />
+        </label>
+        <label class="admin-field">
+          <span>Apellidos</span>
+          <input type="text" [(ngModel)]="editDraft.apellidos" name="e_ape" />
+        </label>
+        <label class="admin-field">
+          <span>Teléfono</span>
+          <input type="text" [(ngModel)]="editDraft.telefono" name="e_tel" />
+        </label>
+        <label class="admin-field">
+          <span>Rol</span>
+          <select [(ngModel)]="editDraft.rolCodigo" name="e_rol">
+            @for (r of roles; track r.id) {
+              <option [value]="r.codigo">{{ r.codigo }}</option>
+            }
+          </select>
+        </label>
+        <label class="admin-field">
+          <span>Nueva contraseña (opcional)</span>
+          <input type="password" [(ngModel)]="editDraft.contrasena" name="e_pass" autocomplete="new-password" />
+        </label>
+        <label class="admin-field admin-field-inline">
+          <input type="checkbox" [(ngModel)]="editDraft.estado" name="e_est" />
+          <span>Activo</span>
+        </label>
+      </div>
+      <div class="admin-inline-actions">
+        <button type="button" class="admin-primary-btn" (click)="saveEdit()">Guardar cambios</button>
+        <button type="button" class="admin-secondary-btn" (click)="cancelEdit()">Cancelar</button>
+      </div>
+    </div>
+  }
+
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Correo</th>
+          <th>Nombre</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of usuarios; track u.id) {
+          <tr>
+            <td>{{ u.correo }}</td>
+            <td>{{ u.nombres }} {{ u.apellidos }}</td>
+            <td><span class="admin-pill">{{ u.rolCodigo }}</span></td>
+            <td>{{ u.estado ? 'Activo' : 'Inactivo' }}</td>
+            <td class="admin-row-actions">
+              <button type="button" class="admin-linkish" (click)="startEdit(u)">Editar</button>
+              <button type="button" class="admin-linkish danger" (click)="remove(u)">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">{{ loading ? 'Cargando…' : 'Sin registros.' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-pagination">
+    <button type="button" class="admin-secondary-btn" (click)="prev()" [disabled]="page <= 0 || loading">
+      Anterior
+    </button>
+    <span class="admin-page-meta">Página {{ page + 1 }} de {{ totalPages || 1 }} · {{ totalElements }} usuarios</span>
+    <button
+      type="button"
+      class="admin-secondary-btn"
+      (click)="next()"
+      [disabled]="page >= totalPages - 1 || loading || totalPages === 0"
+    >
+      Siguiente
+    </button>
+  </div>
+</section>

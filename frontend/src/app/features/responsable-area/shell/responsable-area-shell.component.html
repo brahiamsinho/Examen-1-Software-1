@@ -1,0 +1,47 @@
+<div class="modulo-app ra-app">
+  <aside class="modulo-sidebar ra-sidebar" aria-label="Navegación responsable de área">
+    <div class="modulo-sidebar-brand">
+      <span class="modulo-sidebar-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M4 8h16v10H4V8zm2 2v6h12v-6H6zm3 2h6v2H9v-2z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <div class="modulo-sidebar-titles">
+        <span class="modulo-sidebar-kicker">Área</span>
+        <span class="modulo-sidebar-title">Trámites</span>
+      </div>
+    </div>
+
+    <nav class="modulo-nav">
+      <a routerLink="/responsable-area/resumen" routerLinkActive="is-active" class="modulo-nav-item">Resumen</a>
+      <a routerLink="/responsable-area/tramites" routerLinkActive="is-active" class="modulo-nav-item">Trámites</a>
+    </nav>
+
+    <a routerLink="/dashboard" class="modulo-sidebar-footer">Volver al portal</a>
+  </aside>
+
+  <div class="modulo-main-col">
+    <header class="modulo-topbar ra-topbar">
+      <div class="modulo-topbar-text">
+        <h1 class="modulo-topbar-title">Responsable de área</h1>
+        <p class="modulo-topbar-sub">
+          @if (auth.getCorreo(); as c) {
+            <span>Sesión: {{ c }}</span>
+          } @else {
+            <span>Sesión activa</span>
+          }
+        </p>
+      </div>
+      <button type="button" class="modulo-btn modulo-btn-ghost ra-btn" (click)="auth.logout()">Cerrar sesión</button>
+    </header>
+
+    <main class="modulo-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

@@ -50,3 +50,22 @@
 ### DEC-007: Usuario non-root en contenedores
 **Decisión:** Todos los Dockerfiles crean y usan un usuario no-root (`appuser`).
 **Razón:** Buena práctica de seguridad. Contenedores no deben correr como root en producción.
+
+---
+
+## [2026-04-20] Esqueleto FastAPI IA / analítica
+
+### DEC-008: Health canónico en `/health` + alias bajo `/api`
+**Decisión:** Exponer `GET /health` en la raíz del microservicio y mantener `GET /api/health` como alias (prefijo configurable `API_PREFIX`, por defecto `/api`).
+**Razón:** Healthchecks de orquestadores piden una ruta corta; el prefijo `/api` agrupa rutas del microservicio sin segmento de versión en la URL.
+**Consecuencia:** `docker-compose` healthcheck del servicio `fastapi` apunta a `/health`.
+
+### DEC-009: Dominios stub `bottlenecks` y `recommendations` sin endpoints públicos aún
+**Decisión:** Crear paquetes con esquemas Pydantic y servicios que devuelven `status: stub` sin exponer aún rutas REST.
+**Razón:** Cumple el pedido de “base preparada” sin inventar APIs consumidas por el frontend ni duplicar negocio de Spring Boot.
+**Consecuencia:** Los próximos endpoints REST importarán estos servicios y definirán DTOs HTTP explícitos.
+
+### DEC-010: URLs sin `/api/v1`
+**Decisión:** Exponer las APIs REST de Spring Boot bajo `/api/...` (p. ej. `/api/auth/login`, `/api/tramites`) y el router agrupado de FastAPI bajo el mismo estilo (`API_PREFIX=/api`, alias `/api/health`), eliminando el segmento `v1` de las rutas HTTP.
+**Razón:** Menos ruido visual y confusión con versionado que aún no se usa de forma formal.
+**Consecuencia:** Clientes (Angular, Flutter) y documentación deben usar solo `/api/...`; variable de entorno `FASTAPI_API_PREFIX` en Docker para el prefijo del microservicio.

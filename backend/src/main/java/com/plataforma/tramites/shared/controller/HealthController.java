@@ -1,23 +1,17 @@
 package com.plataforma.tramites.shared.controller;
 
+import com.plataforma.tramites.shared.dto.HealthResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
-import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
 public class HealthController {
 
     @GetMapping("/health")
-    public ResponseEntity<Map<String, Object>> health() {
-        return ResponseEntity.ok(Map.of(
-            "status", "UP",
-            "service", "backend",
-            "timestamp", Instant.now().toString()
-        ));
+    public ResponseEntity<HealthResponse> health() {
+        return ResponseEntity.ok(new HealthResponse("UP", "tramites-backend", Instant.now()));
     }
 }

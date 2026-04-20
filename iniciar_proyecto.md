@@ -28,8 +28,8 @@
 4. Comprobar:
 
    - Nginx: `http://localhost/health`
-   - Backend: `http://localhost/backend/api/health`
-   - FastAPI: `http://localhost/fastapi/api/v1/health`
+   - Backend: `http://localhost/backend/health`
+   - FastAPI: `http://localhost/fastapi/health` (también `/fastapi/api/health`)
 
 5. Detener:
 
