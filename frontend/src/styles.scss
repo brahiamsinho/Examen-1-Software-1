@@ -1,0 +1,45 @@
+/* Global styles - Plataforma de Trámites */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --color-primary: #1a73e8;
+  --color-primary-dark: #1558b0;
+  --color-surface: #ffffff;
+  --color-background: #f5f7fa;
+  --color-text: #202124;
+  --color-text-secondary: #5f6368;
+  --color-border: #dadce0;
+  --color-success: #34a853;
+  --color-error: #ea4335;
+  --color-warning: #fbbc04;
+
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --border-radius: 8px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+html,
+body {
+  height: 100%;
+  font-family: var(--font-family);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,65 @@
+# =============================================================
+# .gitignore - Plataforma de Trámites
+# =============================================================
+
+# ─── Secrets / Env ───────────────────────────────────────────
+.env
+*.env
+!*.env.example
+!**/.env.example
+
+# ─── Node / Angular ──────────────────────────────────────────
+node_modules/
+dist/
+.angular/
+*.tgz
+
+# ─── Java / Maven ────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ─── Python / FastAPI ────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# ─── Docker ──────────────────────────────────────────────────
+# (docker-compose.override.yml puede tener configs locales)
+docker-compose.override.yml
+
+# ─── IDEs (descomenta .vscode/ si no querés compartir ajustes) ─
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+
+# ─── OS ──────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Logs ────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── Datos locales / artefactos ─────────────────────────────
+script.db
+*.local.db

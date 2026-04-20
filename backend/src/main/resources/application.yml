@@ -1,0 +1,28 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: tramites-backend
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://mongo:27017/tramitesdb}
+
+  redis:
+    host: ${REDIS_HOST:redis}
+    port: ${REDIS_PORT:6379}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.plataforma.tramites: DEBUG
+    org.springframework: INFO
