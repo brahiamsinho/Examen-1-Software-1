@@ -121,6 +121,9 @@ services:
     image: mongo:7.0
     environment:
       MONGO_INITDB_DATABASE: ${MONGO_DB:-tramitesdb}
+    ports:
+      # Para clientes en tu PC (TablePlus, Compass, mongosh): localhost:${MONGO_HOST_PORT:-27017}
+      - "${MONGO_HOST_PORT:-27017}:27017"
     volumes:
       - mongo-data:/data/db
     networks:

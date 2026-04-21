@@ -1,0 +1,259 @@
+@import '@antv/x6/es/index.css';
+
+.dp-graph-page {
+  max-width: 100%;
+}
+
+.dp-graph-inline-link {
+  color: #6d28d9;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.dp-graph-banner {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  color: #0c4a6e;
+}
+
+.dp-graph-banner--error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.dp-graph-meta {
+  margin-bottom: 1rem;
+}
+
+.dp-graph-meta-desc {
+  grid-column: 1 / -1;
+}
+
+.dp-graph-meta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.dp-graph-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.dp-graph-toolbox {
+  flex: 0 0 132px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.85rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.dp-graph-toolbox-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.dp-graph-toolbox-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.5rem 0.35rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.dp-graph-toolbox-btn:hover {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+  color: #1e1b4b;
+}
+
+.dp-graph-toolbox-btn--active {
+  border-color: #6366f1;
+  background: #eef2ff;
+  color: #4338ca;
+  box-shadow: 0 0 0 1px #c7d2fe inset;
+}
+
+.dp-graph-toolbox-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.dp-graph-toolbox-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0.25rem 0;
+}
+
+.dp-graph-toolbox-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: #64748b;
+}
+
+.dp-graph-main {
+  flex: 1 1 360px;
+  min-width: 280px;
+}
+
+.dp-graph-edge-hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.dp-graph-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+.dp-graph-toolbar-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  margin-right: 0.25rem;
+}
+
+.dp-graph-tool {
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.dp-graph-tool:hover {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+}
+
+.dp-graph-host {
+  width: 100%;
+  height: min(68vh, 620px);
+  min-height: 360px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.dp-graph-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.dp-graph-inspector {
+  flex: 0 0 300px;
+  max-width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  background: #fff;
+}
+
+.dp-graph-inspector-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #1e1b4b;
+}
+
+.dp-graph-inspector-kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6366f1;
+}
+
+.dp-graph-inspector-fields {
+  margin-bottom: 0.75rem;
+}
+
+.dp-graph-field-span {
+  grid-column: 1 / -1;
+}
+
+.dp-graph-inspector-btn {
+  width: 100%;
+  cursor: pointer;
+}
+
+.dp-graph-inspector-empty {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.dp-graph-inspector-hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.dp-graph-manage-areas {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.dp-graph-manage-areas-sep {
+  margin: 0 0.35rem;
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  .dp-graph-toolbox {
+    flex: 1 1 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .dp-graph-toolbox-btn {
+    flex: 1 1 30%;
+    min-width: 88px;
+  }
+
+  .dp-graph-toolbox-hint {
+    flex: 1 1 100%;
+  }
+
+  .dp-graph-inspector {
+    flex: 1 1 100%;
+  }
+}

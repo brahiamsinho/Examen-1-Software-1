@@ -1,0 +1,98 @@
+<section class="admin-page">
+  <header class="admin-page-head">
+    <p class="admin-page-kicker">Catálogo</p>
+    <h2 class="admin-page-title">Áreas / departamentos</h2>
+    <p class="admin-page-lead">
+      Alta y edición de registros en <code>areas</code> (<code>/api/seguridad/areas</code>). Esas filas alimentan el
+      desplegable <strong>Departamento</strong> del editor de grafo y definen a qué usuarios puede asignar el
+      administrador en <strong>Usuarios</strong> (campo área). Las áreas inactivas no aparecen en el inspector del
+      diagrama.
+    </p>
+    <div class="admin-toolbar">
+      <button type="button" class="admin-primary-btn" (click)="toggleCreate()">
+        {{ showCreate ? 'Cerrar formulario' : 'Nueva área' }}
+      </button>
+      <button type="button" class="admin-secondary-btn" (click)="load()" [disabled]="loading">Actualizar</button>
+      <a routerLink="/disenador/modelado" class="admin-secondary-btn dp-areas-link">Volver al editor</a>
+    </div>
+  </header>
+
+  @if (errorMsg) {
+    <p class="admin-alert" role="alert">{{ errorMsg }}</p>
+  }
+
+  @if (showCreate) {
+    <div class="admin-panel">
+      <h3 class="admin-panel-title">Crear área</h3>
+      <div class="admin-form-grid">
+        <label class="admin-field">
+          <span>Nombre</span>
+          <input type="text" [(ngModel)]="create.nombre" name="ar_nom" maxlength="200" />
+        </label>
+        <label class="admin-field admin-field-inline">
+          <input type="checkbox" [(ngModel)]="create.estado" name="ar_est" />
+          <span>Activa (visible en el inspector)</span>
+        </label>
+        <label class="admin-field dp-areas-desc">
+          <span>Descripción</span>
+          <textarea [(ngModel)]="create.descripcion" name="ar_desc" rows="3" maxlength="2000"></textarea>
+        </label>
+      </div>
+      <button type="button" class="admin-primary-btn" (click)="submitCreate()">Guardar</button>
+    </div>
+  }
+
+  @if (editing) {
+    <div class="admin-panel">
+      <h3 class="admin-panel-title">Editar «{{ editing.nombre }}»</h3>
+      <div class="admin-form-grid">
+        <label class="admin-field">
+          <span>Nombre</span>
+          <input type="text" [(ngModel)]="editDraft.nombre" name="ae_nom" maxlength="200" />
+        </label>
+        <label class="admin-field admin-field-inline">
+          <input type="checkbox" [(ngModel)]="editDraft.estado" name="ae_est" />
+          <span>Activa</span>
+        </label>
+        <label class="admin-field dp-areas-desc">
+          <span>Descripción</span>
+          <textarea [(ngModel)]="editDraft.descripcion" name="ae_desc" rows="3" maxlength="2000"></textarea>
+        </label>
+      </div>
+      <div class="admin-inline-actions">
+        <button type="button" class="admin-primary-btn" (click)="saveEdit()">Guardar cambios</button>
+        <button type="button" class="admin-secondary-btn" (click)="cancelEdit()">Cancelar</button>
+      </div>
+    </div>
+  }
+
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of areas; track a.id) {
+          <tr>
+            <td>{{ a.nombre }}</td>
+            <td class="dp-areas-cell-desc">{{ a.descripcion }}</td>
+            <td>{{ a.estado ? 'Activa' : 'Inactiva' }}</td>
+            <td class="admin-row-actions">
+              <button type="button" class="admin-linkish" (click)="startEdit(a)">Editar</button>
+              <button type="button" class="admin-linkish danger" (click)="remove(a)">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">{{ loading ? 'Cargando…' : 'Sin áreas. Creá la primera con el formulario de arriba.' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -1,14 +1,128 @@
-<section class="admin-page">
+<section class="ra-page admin-page">
   <header class="admin-page-head">
     <p class="admin-page-kicker">Trámites</p>
-    <h2 class="admin-page-title">Bandeja del área</h2>
+    <h2 class="admin-page-title">Bandeja</h2>
     <p class="admin-page-lead">
-      Punto de entrada para revisar trámites asignados al área, cambiar estados y dejar observaciones. El detalle se
-      conectará al API de trámites cuando lo incorporemos.
+      Consultá el listado general o la cola priorizada por estado. Los trámites se administran desde el flujo global del
+      sistema; esta vista te ayuda a dar seguimiento operativo.
     </p>
+    @if (ctx.context()?.tieneArea) {
+      <div class="admin-toolbar ra-toolbar">
+        <div class="ra-segment" role="group" aria-label="Vista de bandeja">
+          <button
+            type="button"
+            class="ra-segment-btn"
+            [class.ra-segment-btn--active]="vista === 'todos'"
+            (click)="setVista('todos')"
+          >
+            Todos
+          </button>
+          <button
+            type="button"
+            class="ra-segment-btn"
+            [class.ra-segment-btn--active]="vista === 'cola'"
+            (click)="setVista('cola')"
+          >
+            Cola FIFO
+          </button>
+        </div>
+        <button type="button" class="admin-secondary-btn ra-refresh" (click)="load()" [disabled]="loading">
+          Actualizar
+        </button>
+      </div>
+    }
   </header>
 
-  <div class="actor-placeholder">
-    <p>Próximamente: tabla de trámites filtrada por área y acciones rápidas.</p>
-  </div>
+  @if (ctx.loading()) {
+    <p class="ra-inline-status" role="status">Preparando bandeja…</p>
+  } @else if (!ctx.context()?.tieneArea) {
+    <div class="ra-panel-empty" role="region" aria-label="Sin área">
+      <p class="ra-panel-empty-title">No hay bandeja hasta que te asignen un área</p>
+      <p class="ra-panel-empty-body">
+        La información de tu departamento y las políticas vinculadas aparece arriba cuando exista una asignación
+        válida. Si acabás de ingresar, contactá a un administrador.
+      </p>
+    </div>
+  } @else {
+    @if (errorMsg) {
+      <p class="admin-alert" role="alert">{{ errorMsg }}</p>
+    }
+
+    @if (vista === 'cola') {
+      <div class="admin-panel ra-filters">
+        <h3 class="admin-panel-title">Filtros de cola</h3>
+        <div class="admin-form-grid">
+          <label class="admin-field">
+            <span>Estado</span>
+            <select [(ngModel)]="colaEstado" name="fifo_est" (change)="load()">
+              @for (e of estados; track e) {
+                <option [value]="e">{{ e }}</option>
+              }
+            </select>
+          </label>
+          <label class="admin-field">
+            <span>Prioridad (opcional)</span>
+            <select [(ngModel)]="colaPrioridad" name="fifo_pri" (change)="load()">
+              <option value="">Todas las prioridades</option>
+              @for (pr of prioridades; track pr) {
+                <option [value]="pr">{{ pr }}</option>
+              }
+            </select>
+          </label>
+        </div>
+      </div>
+    }
+
+    <div class="admin-table-wrap ra-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Asunto</th>
+            <th>Estado</th>
+            <th>Prioridad</th>
+            <th>Turno</th>
+            <th>Registro</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of tramites; track t.id) {
+            <tr>
+              <td>{{ t.codigo }}</td>
+              <td>{{ t.asunto }}</td>
+              <td><span class="admin-pill">{{ t.estado }}</span></td>
+              <td>{{ t.prioridad }}</td>
+              <td>{{ t.numeroTurno }}</td>
+              <td>{{ t.fechaRegistro | date: 'short' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">{{ loading ? 'Cargando…' : 'Sin trámites en esta vista.' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (vista === 'todos') {
+      <div class="admin-pagination">
+        <button type="button" class="admin-secondary-btn" (click)="prev()" [disabled]="page <= 0 || loading">
+          Anterior
+        </button>
+        <span class="admin-page-meta"
+          >Página {{ page + 1 }} de {{ totalPages || 1 }} · {{ totalElements }} trámites</span
+        >
+        <button
+          type="button"
+          class="admin-secondary-btn"
+          (click)="next()"
+          [disabled]="page >= totalPages - 1 || loading || totalPages === 0"
+        >
+          Siguiente
+        </button>
+      </div>
+    } @else {
+      <p class="admin-page-meta ra-fifo-meta">{{ totalElements }} trámites en esta cola</p>
+    }
+  }
 </section>

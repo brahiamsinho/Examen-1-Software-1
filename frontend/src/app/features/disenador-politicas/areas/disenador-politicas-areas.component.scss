@@ -1,0 +1,18 @@
+.dp-areas-desc {
+  grid-column: 1 / -1;
+}
+
+.dp-areas-cell-desc {
+  max-width: 28rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dp-areas-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}

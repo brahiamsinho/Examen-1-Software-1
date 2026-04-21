@@ -6,6 +6,7 @@ import com.plataforma.tramites.modules.admin.dto.UsuarioAdminResponse;
 import com.plataforma.tramites.modules.admin.dto.UsuarioAdminUpdateRequest;
 import com.plataforma.tramites.modules.seguridad.document.RolDocument;
 import com.plataforma.tramites.modules.seguridad.document.UsuarioDocument;
+import com.plataforma.tramites.modules.seguridad.repository.AreaRepository;
 import com.plataforma.tramites.modules.seguridad.repository.RolRepository;
 import com.plataforma.tramites.modules.seguridad.repository.UsuarioRepository;
 import com.plataforma.tramites.shared.exception.ApiException;
@@ -24,16 +25,19 @@ public class AdminUsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
+    private final AreaRepository areaRepository;
     private final PasswordEncoder passwordEncoder;
     private final AdminAuditService adminAuditService;
 
     public AdminUsuarioService(
             UsuarioRepository usuarioRepository,
             RolRepository rolRepository,
+            AreaRepository areaRepository,
             PasswordEncoder passwordEncoder,
             AdminAuditService adminAuditService) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
+        this.areaRepository = areaRepository;
         this.passwordEncoder = passwordEncoder;
         this.adminAuditService = adminAuditService;
     }
@@ -69,6 +73,13 @@ public class AdminUsuarioService {
         u.setEstado(req.isEstado());
         u.setContrasena(passwordEncoder.encode(req.getContrasena()));
         u.setRolId(rol.getId());
+        if (req.getAreaId() != null && !req.getAreaId().isBlank()) {
+            ObjectId aid = parseAreaIdOrThrow(req.getAreaId().trim());
+            if (!areaRepository.existsById(aid)) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Área no encontrada.");
+            }
+            u.setAreaId(aid);
+        }
         UsuarioDocument saved = usuarioRepository.save(u);
         adminAuditService.registrar(
                 "USUARIO_CREAR", "Usuario", "correo=" + saved.getCorreo() + ", rol=" + rol.getCodigo());
@@ -113,6 +124,17 @@ public class AdminUsuarioService {
                     .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Rol no encontrado."));
             u.setRolId(rol.getId());
             rolCodigo = rol.getCodigo();
+        }
+        if (req.getAreaId() != null) {
+            if (req.getAreaId().isBlank()) {
+                u.setAreaId(null);
+            } else {
+                ObjectId aid = parseAreaIdOrThrow(req.getAreaId().trim());
+                if (!areaRepository.existsById(aid)) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "Área no encontrada.");
+                }
+                u.setAreaId(aid);
+            }
         }
         UsuarioDocument saved = usuarioRepository.save(u);
         if (rolCodigo == null) {
@@ -166,6 +188,14 @@ public class AdminUsuarioService {
         r.setEstado(u.isEstado());
         r.setRolId(u.getRolId() != null ? u.getRolId().toHexString() : null);
         r.setRolCodigo(rolCodigo != null ? rolCodigo : "");
+        r.setAreaId(u.getAreaId() != null ? u.getAreaId().toHexString() : null);
         return r;
+    }
+
+    private static ObjectId parseAreaIdOrThrow(String hex) {
+        if (!ObjectId.isValid(hex)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Id de área inválido.");
+        }
+        return new ObjectId(hex);
     }
 }

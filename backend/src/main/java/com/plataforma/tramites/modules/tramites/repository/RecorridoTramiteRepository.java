@@ -1,6 +1,6 @@
-package com.plataforma.tramites.modules.seguimiento.repository;
+package com.plataforma.tramites.modules.tramites.repository;
 
-import com.plataforma.tramites.modules.seguimiento.document.RecorridoTramiteDocument;
+import com.plataforma.tramites.modules.tramites.document.RecorridoTramiteDocument;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 

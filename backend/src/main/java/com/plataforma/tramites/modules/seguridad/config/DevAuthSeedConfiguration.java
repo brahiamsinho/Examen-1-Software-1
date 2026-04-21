@@ -2,9 +2,11 @@ package com.plataforma.tramites.modules.seguridad.config;
 
 import com.plataforma.tramites.modules.admin.document.PermisoDocument;
 import com.plataforma.tramites.modules.admin.repository.PermisoRepository;
+import com.plataforma.tramites.modules.seguridad.document.AreaDocument;
 import com.plataforma.tramites.modules.seguridad.document.RolDocument;
 import com.plataforma.tramites.modules.seguridad.document.UsuarioDocument;
 import com.plataforma.tramites.modules.seguridad.model.PortalRol;
+import com.plataforma.tramites.modules.seguridad.repository.AreaRepository;
 import com.plataforma.tramites.modules.seguridad.repository.RolRepository;
 import com.plataforma.tramites.modules.seguridad.repository.UsuarioRepository;
 import org.slf4j.Logger;
@@ -40,6 +42,7 @@ public class DevAuthSeedConfiguration {
     ApplicationRunner seedAuthData(
             RolRepository rolRepository,
             UsuarioRepository usuarioRepository,
+            AreaRepository areaRepository,
             PermisoRepository permisoRepository,
             PasswordEncoder passwordEncoder) {
         return args -> {
@@ -48,6 +51,10 @@ public class DevAuthSeedConfiguration {
             Arrays.stream(PortalRol.values()).forEach(portalRol -> upsertRol(rolRepository, portalRol));
             ensurePermisosCatalog(permisoRepository);
             syncAdminRolePermisos(rolRepository, permisoRepository);
+
+            upsertAreaSeed(areaRepository, "Atención al cliente", "Primer contacto y orientación al usuario.");
+            upsertAreaSeed(areaRepository, "Departamento legal", "Revisión jurídica y documentación contractual.");
+            upsertAreaSeed(areaRepository, "Recursos humanos", "Gestión de personal y expedientes internos.");
 
             String hashDemo = passwordEncoder.encode(PASSWORD_DEMO);
             upsertUsuario(
@@ -82,7 +89,43 @@ public class DevAuthSeedConfiguration {
                     "Demo",
                     hashDemo,
                     PortalRol.CLIENTE);
+
+            areaRepository
+                    .findByNombreIgnoreCase("Departamento legal")
+                    .ifPresent(legal -> {
+                        usuarioRepository.findByCorreo("area@tramites.local").ifPresent(u -> {
+                            u.setAreaId(legal.getId());
+                            usuarioRepository.save(u);
+                            log.warn("Semilla auth-dev: area@tramites.local asignado al área «{}».", legal.getNombre());
+                        });
+                        upsertUsuario(
+                                usuarioRepository,
+                                rolRepository,
+                                "legal@tramites.local",
+                                "Encargado",
+                                "Legal",
+                                hashDemo,
+                                PortalRol.RESPONSABLE_AREA);
+                        usuarioRepository.findByCorreo("legal@tramites.local").ifPresent(u -> {
+                            u.setAreaId(legal.getId());
+                            usuarioRepository.save(u);
+                        });
+                    });
         };
+    }
+
+    private static void upsertAreaSeed(AreaRepository areaRepository, String nombre, String descripcion) {
+        areaRepository
+                .findByNombreIgnoreCase(nombre)
+                .orElseGet(() -> {
+                    AreaDocument a = new AreaDocument();
+                    a.setNombre(nombre);
+                    a.setDescripcion(descripcion);
+                    a.setEstado(true);
+                    AreaDocument saved = areaRepository.save(a);
+                    log.warn("Semilla auth-dev: área «{}» creada.", nombre);
+                    return saved;
+                });
     }
 
     private static RolDocument upsertRol(RolRepository rolRepository, PortalRol portalRol) {

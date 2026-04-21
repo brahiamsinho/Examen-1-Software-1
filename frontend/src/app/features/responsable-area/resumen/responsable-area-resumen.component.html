@@ -1,25 +1,76 @@
-<section class="admin-page">
+<section class="ra-resumen admin-page">
   <header class="admin-page-head">
     <p class="admin-page-kicker">Resumen</p>
-    <h2 class="admin-page-title">Portal del responsable de área</h2>
+    <h2 class="admin-page-title">Tu panel</h2>
     <p class="admin-page-lead">
-      Este módulo concentra las vistas del actor <strong>RESPONSABLE_AREA</strong>: seguimiento de trámites, tareas
-      pendientes y métricas locales (a cablear con el backend cuando corresponda).
+      Desde acá accedés a la bandeja de trámites. El encabezado superior resume tu <strong>área asignada</strong> y las
+      <strong>políticas de negocio</strong> que incluyen nodos de tu departamento.
     </p>
   </header>
 
+  @if (ctx.loading()) {
+    <p class="ra-resumen-status" role="status">Cargando información…</p>
+  } @else {
+    @if (ctx.error()) {
+      <p class="admin-alert" role="alert">{{ ctx.error() }}</p>
+    } @else {
+      @if (ctx.context(); as c) {
+        @if (!c.tieneArea) {
+          <div class="ra-resumen-callout ra-resumen-callout--warn" role="region">
+            <p class="ra-resumen-callout-title">Sin área asignada</p>
+            <p class="ra-resumen-callout-body">
+              Todavía no figura un departamento en tu perfil. Solicitá a un administrador que complete el campo
+              <strong>Área</strong> en tu usuario. Hasta entonces la bandeja de trámites permanecerá deshabilitada.
+            </p>
+          </div>
+        } @else {
+          <div class="ra-resumen-callout" role="region">
+            <p class="ra-resumen-callout-kicker">Departamento actual</p>
+            <p class="ra-resumen-callout-title">{{ c.areaNombre }}</p>
+            @if (c.areaDescripcion) {
+              <p class="ra-resumen-callout-body">{{ c.areaDescripcion }}</p>
+            }
+          </div>
+
+          @if (c.politicasEnLasQueParticipaElArea.length > 0) {
+            <div class="ra-policy-cards" aria-label="Políticas vinculadas">
+              @for (p of c.politicasEnLasQueParticipaElArea; track p.id) {
+                <div class="ra-policy-card">
+                  <p class="ra-policy-card-name">{{ p.nombre }}</p>
+                  <p class="ra-policy-card-meta">Versión {{ p.version }} · Estado {{ p.estado }}</p>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="ra-resumen-muted">
+              No hay políticas con nodos asignados a tu área. Cuando el diseñador publique un flujo que use tu
+              departamento, vas a verlas en el resumen superior y aquí.
+            </p>
+          }
+        }
+      }
+    }
+  }
+
   <div class="actor-card-grid ra-cards">
-    <a routerLink="/responsable-area/tramites" class="actor-card ra-card">
-      <span class="actor-card-title">Bandeja de trámites</span>
-      <span class="actor-card-hint">Listados y acciones por área</span>
-    </a>
+    @if (ctx.context()?.tieneArea) {
+      <a routerLink="/responsable-area/tramites" class="actor-card ra-card">
+        <span class="actor-card-title">Bandeja de trámites</span>
+        <span class="actor-card-hint">Listado y cola priorizada para seguimiento diario.</span>
+      </a>
+    } @else {
+      <div class="actor-card actor-card--muted ra-card-muted" aria-disabled="true">
+        <span class="actor-card-title">Bandeja de trámites</span>
+        <span class="actor-card-hint">Disponible cuando tengas un área asignada.</span>
+      </div>
+    }
     <div class="actor-card actor-card--muted ra-card-muted">
       <span class="actor-card-title">Indicadores</span>
-      <span class="actor-card-hint">Reservado para tableros del área</span>
+      <span class="actor-card-hint">Reservado para métricas del área.</span>
     </div>
   </div>
 
-  @if (auth.getCorreo(); as c) {
-    <p class="actor-footnote">Conectado como {{ c }}.</p>
+  @if (auth.getCorreo(); as mail) {
+    <p class="actor-footnote">Conectado como {{ mail }}.</p>
   }
 </section>

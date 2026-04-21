@@ -1,13 +1,17 @@
 package com.plataforma.tramites.modules.politicas.document;
 
+import com.plataforma.tramites.modules.politicas.model.ConexionFlujoEmbeddable;
+import com.plataforma.tramites.modules.politicas.model.NodoPoliticaEmbeddable;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Colección {@code politicas_negocio} (script.db). Nodos y conexiones se modelarán en fases posteriores.
+ * Colección {@code politicas_negocio} (script.db): nodos y conexiones embebidos.
  */
 @Document(collection = "politicas_negocio")
 public class PoliticaNegocioDocument {
@@ -19,6 +23,8 @@ public class PoliticaNegocioDocument {
     private int version;
     private String estado;
     private Instant fechaCreacion;
+    private List<NodoPoliticaEmbeddable> nodos = new ArrayList<>();
+    private List<ConexionFlujoEmbeddable> conexiones = new ArrayList<>();
 
     public ObjectId getId() {
         return id;
@@ -66,5 +72,21 @@ public class PoliticaNegocioDocument {
 
     public void setFechaCreacion(Instant fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public List<NodoPoliticaEmbeddable> getNodos() {
+        return nodos;
+    }
+
+    public void setNodos(List<NodoPoliticaEmbeddable> nodos) {
+        this.nodos = nodos != null ? nodos : new ArrayList<>();
+    }
+
+    public List<ConexionFlujoEmbeddable> getConexiones() {
+        return conexiones;
+    }
+
+    public void setConexiones(List<ConexionFlujoEmbeddable> conexiones) {
+        this.conexiones = conexiones != null ? conexiones : new ArrayList<>();
     }
 }

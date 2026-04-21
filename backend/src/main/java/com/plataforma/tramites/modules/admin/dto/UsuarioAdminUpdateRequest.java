@@ -19,6 +19,9 @@ public class UsuarioAdminUpdateRequest {
 
     private Boolean estado;
 
+    /** Hex de {@code areas._id}; vacío o null limpia la asignación. */
+    private String areaId;
+
     public String getCorreo() {
         return correo;
     }
@@ -73,5 +76,13 @@ public class UsuarioAdminUpdateRequest {
 
     public void setEstado(Boolean estado) {
         this.estado = estado;
+    }
+
+    public String getAreaId() {
+        return areaId;
+    }
+
+    public void setAreaId(String areaId) {
+        this.areaId = areaId;
     }
 }

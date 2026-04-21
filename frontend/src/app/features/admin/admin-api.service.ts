@@ -28,6 +28,7 @@ export class AdminApiService {
     telefono?: string;
     rolCodigo: string;
     estado?: boolean;
+    areaId?: string | null;
   }): Observable<UsuarioAdminDto> {
     return this.http.post<UsuarioAdminDto>(`${this.base}/usuarios`, body);
   }
@@ -42,6 +43,7 @@ export class AdminApiService {
       telefono: string;
       rolCodigo: string;
       estado: boolean;
+      areaId: string | null;
     }>,
   ): Observable<UsuarioAdminDto> {
     return this.http.patch<UsuarioAdminDto>(`${this.base}/usuarios/${id}`, body);

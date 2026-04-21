@@ -4,6 +4,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminApiService } from '@features/admin/admin-api.service';
 import type { RolAdminDto, UsuarioAdminDto } from '@features/admin/admin.models';
+import { AreasApiService } from '@features/disenador-politicas/data/areas-api.service';
+import type { AreaDto } from '@features/disenador-politicas/models/area.model';
 
 @Component({
   selector: 'app-admin-users-page',
@@ -14,8 +16,10 @@ import type { RolAdminDto, UsuarioAdminDto } from '@features/admin/admin.models'
 })
 export class AdminUsersPageComponent implements OnInit {
   private readonly api = inject(AdminApiService);
+  private readonly areasApi = inject(AreasApiService);
 
   usuarios: UsuarioAdminDto[] = [];
+  areas: AreaDto[] = [];
   roles: RolAdminDto[] = [];
   page = 0;
   size = 15;
@@ -33,6 +37,7 @@ export class AdminUsersPageComponent implements OnInit {
     telefono: '',
     rolCodigo: 'CLIENTE',
     estado: true,
+    areaId: '',
   };
 
   editing: UsuarioAdminDto | null = null;
@@ -43,9 +48,14 @@ export class AdminUsersPageComponent implements OnInit {
     rolCodigo: '',
     estado: true,
     contrasena: '',
+    areaId: '',
   };
 
   ngOnInit(): void {
+    this.areasApi.list().subscribe({
+      next: (list) => (this.areas = [...list].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))),
+      error: () => (this.areas = []),
+    });
     this.api.listRoles().subscribe({
       next: (r) => (this.roles = r),
       error: (e) => (this.errorMsg = this.msg(e)),
@@ -90,7 +100,13 @@ export class AdminUsersPageComponent implements OnInit {
 
   submitCreate(): void {
     this.errorMsg = '';
-    this.api.createUsuario(this.create).subscribe({
+    const { areaId, ...rest } = this.create;
+    this.api
+      .createUsuario({
+        ...rest,
+        ...(areaId.trim() ? { areaId: areaId.trim() } : {}),
+      })
+      .subscribe({
       next: () => {
         this.showCreate = false;
         this.create = {
@@ -101,6 +117,7 @@ export class AdminUsersPageComponent implements OnInit {
           telefono: '',
           rolCodigo: 'CLIENTE',
           estado: true,
+          areaId: '',
         };
         this.page = 0;
         this.load();
@@ -118,6 +135,7 @@ export class AdminUsersPageComponent implements OnInit {
       rolCodigo: u.rolCodigo,
       estado: u.estado,
       contrasena: '',
+      areaId: u.areaId ?? '',
     };
   }
 
@@ -135,6 +153,7 @@ export class AdminUsersPageComponent implements OnInit {
       telefono: this.editDraft.telefono,
       rolCodigo: this.editDraft.rolCodigo,
       estado: this.editDraft.estado,
+      areaId: this.editDraft.areaId.trim(),
     };
     if (this.editDraft.contrasena.trim().length > 0) {
       body['contrasena'] = this.editDraft.contrasena;
@@ -156,6 +175,13 @@ export class AdminUsersPageComponent implements OnInit {
       next: () => this.load(),
       error: (e) => (this.errorMsg = this.msg(e)),
     });
+  }
+
+  nombreArea(areaId: string | null | undefined): string {
+    if (!areaId) {
+      return '—';
+    }
+    return this.areas.find((a) => a.id === areaId)?.nombre ?? areaId;
   }
 
   private msg(err: unknown): string {

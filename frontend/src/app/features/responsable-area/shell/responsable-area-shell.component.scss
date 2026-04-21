@@ -1,57 +1,308 @@
-/* Variante esmeralda sobre la misma base `.modulo-*` */
+/* Shell responsable: rejilla base (no depende del SCSS del diseñador) + acento esmeralda */
 .ra-app.modulo-app {
-  background: #ecfdf5;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  font-family: 'Fira Sans', 'Lato', system-ui, sans-serif;
+  color: #020617;
+  background: #f8fafc;
 }
 
 .ra-sidebar.modulo-sidebar {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 0.9rem;
+  min-height: 0;
   background: linear-gradient(180deg, #064e3b 0%, #022c22 100%);
-  border-right-color: #047857;
+  color: #e2e8f0;
+  border-right: 1px solid #047857;
 }
 
 .ra-sidebar .modulo-sidebar-brand {
-  border-bottom-color: rgba(110, 231, 183, 0.25);
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0 0.5rem 1.25rem;
+  border-bottom: 1px solid rgba(110, 231, 183, 0.25);
+  margin-bottom: 1rem;
 }
 
 .ra-sidebar .modulo-sidebar-logo {
   color: #6ee7b7;
+  display: flex;
 }
 
 .ra-sidebar .modulo-sidebar-kicker {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: #a7f3d0;
+  font-weight: 700;
 }
 
-.ra-topbar.modulo-topbar {
-  border-bottom-color: #a7f3d0;
+.ra-sidebar .modulo-sidebar-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
 }
 
-.ra-btn.modulo-btn-ghost {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.ra-btn.modulo-btn-ghost:hover {
-  background: #a7f3d0;
+.ra-sidebar .modulo-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
 }
 
 .ra-sidebar .modulo-nav-item {
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
   color: #d1fae5;
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ra-sidebar .modulo-nav-item {
+    transition: none;
+  }
 }
 
 .ra-sidebar .modulo-nav-item:hover {
   background: rgba(16, 185, 129, 0.2);
   color: #fff;
+  text-decoration: none;
 }
 
 .ra-sidebar .modulo-nav-item.is-active {
   background: rgba(16, 185, 129, 0.32);
   color: #ecfdf5;
+  border-color: rgba(167, 243, 208, 0.35);
 }
 
 .ra-sidebar .modulo-sidebar-footer {
+  margin-top: auto;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #a7f3d0;
+  text-align: center;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .ra-sidebar .modulo-sidebar-footer:hover {
   background: rgba(6, 95, 70, 0.35);
   color: #ecfdf5;
+  text-decoration: none;
+}
+
+.ra-app .modulo-main-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #f8fafc;
+}
+
+.ra-topbar.modulo-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.97);
+  border-bottom: 1px solid #cbd5e1;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.ra-topbar .modulo-topbar-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+}
+
+.ra-topbar .modulo-topbar-sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.ra-app .modulo-btn {
+  border: none;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 0.5rem 1rem;
+  min-height: 44px;
+}
+
+.ra-btn.modulo-btn-ghost {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.ra-btn.modulo-btn-ghost:hover {
+  background: #bae6fd;
+  color: #0c4a6e;
+}
+
+.ra-context-loading {
+  margin: 0;
+  padding: 0.65rem 1.5rem;
+  font-size: 0.9rem;
+  color: #475569;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ra-context-error {
+  margin: 0;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  color: #991b1b;
+  background: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+}
+
+.ra-context-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 1.25rem;
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ra-context-banner--warn {
+  background: #fffbeb;
+  border-bottom-color: #fde68a;
+}
+
+.ra-context-banner-text {
+  min-width: 0;
+}
+
+.ra-context-banner-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #92400e;
+}
+
+.ra-context-banner-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #78350f;
+}
+
+.ra-context-banner-main,
+.ra-context-banner-side {
+  min-width: 0;
+}
+
+.ra-context-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0369a1;
+}
+
+.ra-context-area-name {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ra-context-area-desc {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.ra-context-policies-empty {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.ra-context-policy-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.ra-context-policy-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.ra-policy-name {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.ra-policy-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.ra-app .modulo-content {
+  flex: 1;
+  padding: 1.25rem 1.5rem 2rem;
+  max-width: min(1200px, 100%);
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .ra-app.modulo-app {
+    grid-template-columns: 1fr;
+  }
+
+  .ra-sidebar .modulo-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .ra-sidebar .modulo-nav-item {
+    flex: 1 1 auto;
+    min-width: 44%;
+    text-align: center;
+  }
+
+  .ra-context-banner {
+    grid-template-columns: 1fr;
+  }
 }

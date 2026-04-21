@@ -1,3 +1,91 @@
+.ra-resumen-status {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.ra-resumen-callout {
+  margin-bottom: 1.25rem;
+  padding: 1.1rem 1.2rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  max-width: 48rem;
+}
+
+.ra-resumen-callout--warn {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.ra-resumen-callout-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0369a1;
+}
+
+.ra-resumen-callout-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ra-resumen-callout-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.ra-resumen-callout--warn .ra-resumen-callout-title {
+  color: #92400e;
+}
+
+.ra-resumen-callout--warn .ra-resumen-callout-body {
+  color: #78350f;
+}
+
+.ra-resumen-muted {
+  margin: 0 0 1.25rem;
+  max-width: 40rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.ra-policy-cards {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  margin-bottom: 1.25rem;
+  max-width: 56rem;
+}
+
+.ra-policy-card {
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #bae6fd;
+  background: #f0f9ff;
+}
+
+.ra-policy-card-name {
+  margin: 0 0 0.35rem;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: #0c4a6e;
+}
+
+.ra-policy-card-meta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #0369a1;
+  font-variant-numeric: tabular-nums;
+}
+
 .actor-card-grid {
   display: grid;
   gap: 1rem;
@@ -11,31 +99,38 @@
   gap: 0.35rem;
   padding: 1.1rem 1.15rem;
   border-radius: 14px;
-  border: 1px solid #a7f3d0;
+  border: 1px solid #bae6fd;
   background: #fff;
-  box-shadow: 0 6px 18px rgba(4, 120, 87, 0.06);
+  box-shadow: 0 6px 18px rgba(3, 105, 161, 0.06);
   text-decoration: none;
   color: inherit;
+  cursor: pointer;
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
 .actor-card:hover {
-  border-color: #34d399;
-  box-shadow: 0 10px 26px rgba(4, 120, 87, 0.12);
+  border-color: #38bdf8;
+  box-shadow: 0 10px 26px rgba(3, 105, 161, 0.12);
+}
+
+.actor-card:focus-visible {
+  outline: 3px solid #0369a1;
+  outline-offset: 2px;
 }
 
 .actor-card--muted {
   cursor: default;
-  opacity: 0.9;
-  background: #ecfdf5;
+  opacity: 0.88;
+  background: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 .actor-card-title {
   font-weight: 800;
   font-size: 1rem;
-  color: #064e3b;
+  color: #0f172a;
 }
 
 .actor-card-hint {
@@ -47,4 +142,10 @@
   margin-top: 1.5rem;
   font-size: 0.88rem;
   color: #64748b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actor-card {
+    transition: none;
+  }
 }

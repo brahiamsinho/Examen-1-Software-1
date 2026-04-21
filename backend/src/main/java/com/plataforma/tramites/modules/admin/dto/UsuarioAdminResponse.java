@@ -10,6 +10,7 @@ public class UsuarioAdminResponse {
     private boolean estado;
     private String rolId;
     private String rolCodigo;
+    private String areaId;
 
     public String getId() {
         return id;
@@ -73,5 +74,13 @@ public class UsuarioAdminResponse {
 
     public void setRolCodigo(String rolCodigo) {
         this.rolCodigo = rolCodigo;
+    }
+
+    public String getAreaId() {
+        return areaId;
+    }
+
+    public void setAreaId(String areaId) {
+        this.areaId = areaId;
     }
 }

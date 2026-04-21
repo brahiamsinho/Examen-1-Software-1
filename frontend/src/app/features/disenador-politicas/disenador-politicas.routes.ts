@@ -21,6 +21,18 @@ export const disenadorPoliticasRoutes: Routes = [
             (m) => m.DisenadorPoliticasCatalogoComponent,
           ),
       },
+      {
+        path: 'areas',
+        loadComponent: () =>
+          import('./areas/disenador-politicas-areas.component').then((m) => m.DisenadorPoliticasAreasComponent),
+      },
+      {
+        path: 'modelado',
+        loadComponent: () =>
+          import('./modelado/disenador-politicas-modelado.component').then(
+            (m) => m.DisenadorPoliticasModeladoComponent,
+          ),
+      },
     ],
   },
 ];

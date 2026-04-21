@@ -47,6 +47,15 @@
             }
           </select>
         </label>
+        <label class="admin-field">
+          <span>Área (opcional)</span>
+          <select [(ngModel)]="create.areaId" name="c_area">
+            <option value="">— Sin área —</option>
+            @for (a of areas; track a.id) {
+              <option [value]="a.id">{{ a.nombre }}</option>
+            }
+          </select>
+        </label>
         <label class="admin-field admin-field-inline">
           <input type="checkbox" [(ngModel)]="create.estado" name="c_est" />
           <span>Activo</span>
@@ -81,6 +90,15 @@
           </select>
         </label>
         <label class="admin-field">
+          <span>Área</span>
+          <select [(ngModel)]="editDraft.areaId" name="e_area">
+            <option value="">— Sin área —</option>
+            @for (a of areas; track a.id) {
+              <option [value]="a.id">{{ a.nombre }}</option>
+            }
+          </select>
+        </label>
+        <label class="admin-field">
           <span>Nueva contraseña (opcional)</span>
           <input type="password" [(ngModel)]="editDraft.contrasena" name="e_pass" autocomplete="new-password" />
         </label>
@@ -103,6 +121,7 @@
           <th>Correo</th>
           <th>Nombre</th>
           <th>Rol</th>
+          <th>Área</th>
           <th>Estado</th>
           <th></th>
         </tr>
@@ -113,6 +132,7 @@
             <td>{{ u.correo }}</td>
             <td>{{ u.nombres }} {{ u.apellidos }}</td>
             <td><span class="admin-pill">{{ u.rolCodigo }}</span></td>
+            <td>{{ nombreArea(u.areaId) }}</td>
             <td>{{ u.estado ? 'Activo' : 'Inactivo' }}</td>
             <td class="admin-row-actions">
               <button type="button" class="admin-linkish" (click)="startEdit(u)">Editar</button>
@@ -121,7 +141,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="5">{{ loading ? 'Cargando…' : 'Sin registros.' }}</td>
+            <td colspan="6">{{ loading ? 'Cargando…' : 'Sin registros.' }}</td>
           </tr>
         }
       </tbody>

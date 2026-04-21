@@ -1,20 +1,25 @@
 # Handoff reciente
 
+## Último cambio relevante (backend Spring Boot)
+
+- Dominio Mongo alineado a **script.db**: CRUD políticas (`politicas_negocio` con nodos/conexiones embebidos), trámites + cola FIFO + recorridos (`recorridos_tramite` en módulo **tramites**), áreas (`areas`), documentos/formularios, notificaciones + bitácora de negocio (`bitacora`, distinta de `bitacora_auditoria` del admin), analítica/recomendaciones estructurales.
+- **Infra**: `GET /api/seguridad/infra` comprueba Mongo (lectura) y Redis (PING).
+
 ## Último cambio relevante (frontend Angular)
 
-Se consolidó la **base profesional** del frontend alineada con `.cursor/rules/40-frontend-angular.md` y el stack del examen (plataforma de trámites / políticas de negocio).
+- **Login por portal** (`/acceso/politicas`): lectura robusta de `portalRol` desde el árbol de rutas; bloqueo con mensaje claro si falta; pistas de credenciales de **semilla dev** solo cuando no es producción.
+- **Diseñador de políticas**: nueva ruta `/disenador/modelado` con editor **BPMN 2.0** (`bpmn-js` `Modeler`): diagrama nuevo, importar/exportar `.bpmn`, reinicio. Sidebar del shell enlaza “Editor BPMN”; el catálogo enlaza al editor.
 
 ### Qué tocar a continuación
 
-1. Añadir rutas hijas bajo el shell por feature (lazy `loadComponent` o rutas con `loadChildren` si se pasa a módulos).
-2. Definir contratos REST con Spring Boot (DTOs en `core/models`, servicios por feature).
-3. Autenticación: interceptor HTTP + guardas de ruta cuando el módulo de seguridad esté listo.
-4. Opcional: `npx skills find angular` en [skills.sh](https://skills.sh/) si se quieren skills comunitarias adicionales (p. ej. testing o a11y).
+1. Angular: consumir `GET/POST/PUT/DELETE /api/politicas` y listados de trámites; opcional: import BPMN → payload `PoliticaUpsertRequest`.
+2. Spring: **autorización fina por actor** en endpoints de dominio (hoy: JWT autenticado genérico).
+3. Pruebas integración Mongo / transiciones de estado de trámite.
 
 ### Archivos guía
 
-- `frontend/src/app/app.routes.ts`
-- `frontend/src/app/core/layout/shell-layout.component.html`
-- `frontend/src/app/core/services/api.service.ts`
-- `frontend/src/environments/environment*.ts`
+- `backend/src/main/java/com/plataforma/tramites/modules/politicas/`
+- `backend/src/main/java/com/plataforma/tramites/modules/tramites/`
+- `backend/src/main/resources/application.yml`
+- `frontend/src/app/features/disenador-politicas/modelado/disenador-politicas-modelado.component.ts`
 - `frontend/proxy.conf.json`

@@ -1,4 +1,4 @@
-package com.plataforma.tramites.modules.seguimiento.document;
+package com.plataforma.tramites.modules.tramites.document;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 /**
- * Colección {@code recorridos_tramite} (script.db). Notificaciones y bitácora tendrán módulos o subpaquetes propios más adelante.
+ * Colección {@code recorridos_tramite} (script.db).
  */
 @Document(collection = "recorridos_tramite")
 public class RecorridoTramiteDocument {

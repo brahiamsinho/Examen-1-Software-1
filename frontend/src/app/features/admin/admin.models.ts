@@ -15,6 +15,8 @@ export interface UsuarioAdminDto {
   estado: boolean;
   rolId: string;
   rolCodigo: string;
+  /** Hex de `areas._id` si el usuario pertenece a un departamento (p. ej. responsables de área). */
+  areaId?: string | null;
 }
 
 export interface RolAdminDto {

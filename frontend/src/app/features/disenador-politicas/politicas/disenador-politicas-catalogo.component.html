@@ -3,12 +3,103 @@
     <p class="admin-page-kicker">Políticas</p>
     <h2 class="admin-page-title">Catálogo</h2>
     <p class="admin-page-lead">
-      Aquí convivirá el listado y la edición de políticas de negocio. Por ahora es un anclaje modular para seguir
-      desarrollando sin mezclar código con el portal del administrador.
+      Listado paginado conectado a <code>/api/politicas</code>. Crear genera un borrador con nodos mínimos y abre el
+      editor BPMN. El diagrama es una vista aproximada del dominio; los cambios en el lienzo no se sincronizan solos al
+      servidor.
     </p>
+    <div class="admin-toolbar">
+      <button type="button" class="admin-primary-btn" (click)="toggleCreate()">
+        {{ showCreate ? 'Cerrar formulario' : 'Nueva política' }}
+      </button>
+      <button type="button" class="admin-secondary-btn" (click)="load()" [disabled]="loading">Actualizar</button>
+      <a routerLink="/disenador/modelado" class="admin-secondary-btn dp-catalogo-link">Editor sin política</a>
+    </div>
   </header>
 
-  <div class="actor-placeholder">
-    <p>Próximamente: integración con el backend de políticas (listado, borradores, publicación).</p>
+  @if (errorMsg) {
+    <p class="admin-alert" role="alert">{{ errorMsg }}</p>
+  }
+
+  @if (showCreate) {
+    <div class="admin-panel">
+      <h3 class="admin-panel-title">Crear política</h3>
+      <div class="admin-form-grid">
+        <label class="admin-field">
+          <span>Nombre</span>
+          <input type="text" [(ngModel)]="create.nombre" name="p_nom" maxlength="200" />
+        </label>
+        <label class="admin-field">
+          <span>Versión</span>
+          <input type="number" [(ngModel)]="create.version" name="p_ver" min="1" />
+        </label>
+        <label class="admin-field">
+          <span>Estado</span>
+          <select [(ngModel)]="create.estado" name="p_est">
+            <option value="BORRADOR">BORRADOR</option>
+            <option value="PUBLICADA">PUBLICADA</option>
+            <option value="INACTIVA">INACTIVA</option>
+          </select>
+        </label>
+        <label class="admin-field dp-cat-desc">
+          <span>Descripción</span>
+          <textarea [(ngModel)]="create.descripcion" name="p_desc" rows="3" maxlength="4000"></textarea>
+        </label>
+      </div>
+      <button type="button" class="admin-primary-btn" (click)="submitCreate()">Crear y abrir modelado</button>
+    </div>
+  }
+
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Versión</th>
+          <th>Estado</th>
+          <th>Creada</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of politicas; track p.id) {
+          <tr>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.version }}</td>
+            <td><span class="admin-pill">{{ p.estado }}</span></td>
+            <td>{{ p.fechaCreacion | date: 'short' }}</td>
+            <td class="admin-row-actions">
+              <a
+                class="admin-linkish"
+                [routerLink]="['/disenador/modelado']"
+                [queryParams]="{ politicaId: p.id }"
+                >Modelar</a
+              >
+              <button type="button" class="admin-linkish danger" (click)="remove(p)">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">{{ loading ? 'Cargando…' : 'Sin políticas.' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-pagination">
+    <button type="button" class="admin-secondary-btn" (click)="prev()" [disabled]="page <= 0 || loading">
+      Anterior
+    </button>
+    <span class="admin-page-meta"
+      >Página {{ page + 1 }} de {{ totalPages || 1 }} · {{ totalElements }} políticas</span
+    >
+    <button
+      type="button"
+      class="admin-secondary-btn"
+      (click)="next()"
+      [disabled]="page >= totalPages - 1 || loading || totalPages === 0"
+    >
+      Siguiente
+    </button>
   </div>
 </section>

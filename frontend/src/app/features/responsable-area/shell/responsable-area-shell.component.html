@@ -1,4 +1,4 @@
-<div class="modulo-app ra-app">
+<div class="ra-app modulo-app">
   <aside class="modulo-sidebar ra-sidebar" aria-label="Navegación responsable de área">
     <div class="modulo-sidebar-brand">
       <span class="modulo-sidebar-logo" aria-hidden="true">
@@ -12,12 +12,12 @@
         </svg>
       </span>
       <div class="modulo-sidebar-titles">
-        <span class="modulo-sidebar-kicker">Área</span>
-        <span class="modulo-sidebar-title">Trámites</span>
+        <span class="modulo-sidebar-kicker">Portal</span>
+        <span class="modulo-sidebar-title">Responsable de área</span>
       </div>
     </div>
 
-    <nav class="modulo-nav">
+    <nav class="modulo-nav" aria-label="Secciones">
       <a routerLink="/responsable-area/resumen" routerLinkActive="is-active" class="modulo-nav-item">Resumen</a>
       <a routerLink="/responsable-area/tramites" routerLinkActive="is-active" class="modulo-nav-item">Trámites</a>
     </nav>
@@ -28,10 +28,10 @@
   <div class="modulo-main-col">
     <header class="modulo-topbar ra-topbar">
       <div class="modulo-topbar-text">
-        <h1 class="modulo-topbar-title">Responsable de área</h1>
+        <h1 class="modulo-topbar-title">Tu espacio de trabajo</h1>
         <p class="modulo-topbar-sub">
-          @if (auth.getCorreo(); as c) {
-            <span>Sesión: {{ c }}</span>
+          @if (auth.getCorreo(); as cMail) {
+            <span>Sesión: {{ cMail }}</span>
           } @else {
             <span>Sesión activa</span>
           }
@@ -39,6 +39,56 @@
       </div>
       <button type="button" class="modulo-btn modulo-btn-ghost ra-btn" (click)="auth.logout()">Cerrar sesión</button>
     </header>
+
+    @if (ctx.loading()) {
+      <div class="ra-context-loading" role="status">Cargando datos de tu área…</div>
+    } @else {
+      @if (ctx.error()) {
+        <div class="ra-context-error" role="alert">{{ ctx.error() }}</div>
+      } @else {
+        @if (ctx.context(); as c) {
+          @if (!c.tieneArea) {
+            <div class="ra-context-banner ra-context-banner--warn" role="region" aria-label="Sin área asignada">
+              <div class="ra-context-banner-text">
+                <p class="ra-context-banner-title">Aún no tenés un área asignada</p>
+                <p class="ra-context-banner-body">
+                  Pedile a un administrador que te asigne un departamento en <strong>Usuarios</strong> (campo área). Hasta
+                  entonces no vas a ver trámites ni políticas asociadas a un departamento.
+                </p>
+              </div>
+            </div>
+          } @else {
+            <div class="ra-context-banner" role="region" aria-label="Área y políticas">
+              <div class="ra-context-banner-main">
+                <p class="ra-context-kicker">Área asignada</p>
+                <p class="ra-context-area-name">{{ c.areaNombre }}</p>
+                @if (c.areaDescripcion) {
+                  <p class="ra-context-area-desc">{{ c.areaDescripcion }}</p>
+                }
+              </div>
+              <div class="ra-context-banner-side">
+                <p class="ra-context-kicker">Políticas donde participa el área</p>
+                @if (c.politicasEnLasQueParticipaElArea.length === 0) {
+                  <p class="ra-context-policies-empty">
+                    Ninguna política tiene nodos vinculados a esta área. Cuando el diseñador asigne departamentos en el
+                    diagrama y guarde, vas a verlas aquí.
+                  </p>
+                } @else {
+                  <ul class="ra-context-policy-list">
+                    @for (p of c.politicasEnLasQueParticipaElArea; track p.id) {
+                      <li>
+                        <span class="ra-policy-name">{{ p.nombre }}</span>
+                        <span class="ra-policy-meta">v{{ p.version }} · {{ p.estado }}</span>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+          }
+        }
+      }
+    }
 
     <main class="modulo-content">
       <router-outlet />

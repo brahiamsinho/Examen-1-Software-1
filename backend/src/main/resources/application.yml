@@ -7,7 +7,8 @@ spring:
 
   data:
     mongodb:
-      # Colecciones alineadas con script.db (DB por defecto: tramitesdb vía MONGO_DB en compose).
+      # Colecciones alineadas con script.db / init-mongo.js. El nombre de BD lo define MONGO_DB en Docker (p. ej. tramitesdb);
+      # el archivo script.db de referencia usa el ejemplo "gestion_tramites" — mantener URI coherente con el despliegue.
       uri: ${MONGODB_URI:mongodb://mongo:27017/tramitesdb}
 
   redis:

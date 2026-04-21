@@ -21,6 +21,9 @@ public class UsuarioAdminCreateRequest {
 
     private boolean estado = true;
 
+    /** Hex de {@code areas._id} (opcional). */
+    private String areaId;
+
     public String getCorreo() {
         return correo;
     }
@@ -75,5 +78,13 @@ public class UsuarioAdminCreateRequest {
 
     public void setEstado(boolean estado) {
         this.estado = estado;
+    }
+
+    public String getAreaId() {
+        return areaId;
+    }
+
+    public void setAreaId(String areaId) {
+        this.areaId = areaId;
     }
 }

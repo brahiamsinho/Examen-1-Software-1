@@ -5,6 +5,10 @@
     <h1 class="login-title">{{ portalTitulo }}</h1>
     <p class="login-sub">Ingresa tus credenciales para acceder al panel correspondiente.</p>
 
+    @if (devSeedHint) {
+      <p class="login-dev-hint" role="note">{{ devSeedHint }}</p>
+    }
+
     <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
       <label class="login-label" for="correo">Correo</label>
       <input

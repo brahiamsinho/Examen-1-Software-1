@@ -1,6 +1,7 @@
 package com.plataforma.tramites.modules.seguridad.controller;
 
 import com.plataforma.tramites.modules.seguridad.service.SeguridadService;
+import com.plataforma.tramites.shared.dto.InfraHealthResponse;
 import com.plataforma.tramites.shared.dto.ModuleStatusResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,5 +20,11 @@ public class SeguridadController {
     @GetMapping("/status")
     public ModuleStatusResponse status() {
         return seguridadService.moduleStatus();
+    }
+
+    /** Diagnóstico de MongoDB y Redis (variables {@code spring.data.mongodb.*} y {@code spring.data.redis.*}). */
+    @GetMapping("/infra")
+    public InfraHealthResponse infra() {
+        return seguridadService.checkInfra();
     }
 }

@@ -1,9 +1,89 @@
-.actor-placeholder {
-  padding: 1.25rem 1.35rem;
-  border-radius: 14px;
-  border: 1px dashed #34d399;
-  background: #ecfdf5;
-  color: #065f46;
-  font-size: 0.95rem;
-  line-height: 1.5;
+.ra-toolbar {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ra-segment {
+  display: inline-flex;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.ra-segment-btn {
+  border: 0;
+  background: transparent;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.ra-segment-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.ra-segment-btn--active {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.ra-segment-btn--active:hover {
+  background: #ddd6fe;
+  color: #4c1d95;
+}
+
+.ra-filters {
+  margin-bottom: 1rem;
+}
+
+.ra-fifo-meta {
+  margin-top: 0.75rem;
+}
+
+.ra-inline-status {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.ra-panel-empty {
+  padding: 1.5rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  max-width: 40rem;
+}
+
+.ra-panel-empty-title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ra-panel-empty-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.ra-refresh {
+  cursor: pointer;
+}
+
+.ra-table-wrap {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ra-segment-btn {
+    transition: none;
+  }
 }
