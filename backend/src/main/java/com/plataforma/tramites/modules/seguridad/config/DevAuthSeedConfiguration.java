@@ -76,6 +76,14 @@ public class DevAuthSeedConfiguration {
             upsertUsuario(
                     usuarioRepository,
                     rolRepository,
+                    "politicas2@tramites.local",
+                    "Disenador",
+                    "PoliticasDos",
+                    hashDemo,
+                    PortalRol.DISENADOR_POLITICAS);
+            upsertUsuario(
+                    usuarioRepository,
+                    rolRepository,
                     "area@tramites.local",
                     "Responsable",
                     "Area",

@@ -91,7 +91,7 @@ Si `APP_DEV_AUTH_SEED_ENABLED=true` y Mongo está vacío en roles, Spring insert
 | Rol | Correo |
 |-----|--------|
 | ADMINISTRADOR | `admin@tramites.local` |
-| DISENADOR_POLITICAS | `politicas@tramites.local` |
+| DISENADOR_POLITICAS | `politicas@tramites.local` y `politicas2@tramites.local` (misma contraseña; útil para probar el editor en tiempo real) |
 | RESPONSABLE_AREA | `area@tramites.local` |
 | CLIENTE | `cliente@tramites.local` |
 

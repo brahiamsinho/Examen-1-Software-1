@@ -11,6 +11,7 @@ public record PoliticaNegocioResponse(
         String nombre,
         String descripcion,
         int version,
+        long lockVersion,
         String estado,
         Instant fechaCreacion,
         List<NodoPoliticaEmbeddable> nodos,

@@ -22,6 +22,15 @@
     </p>
   }
 
+  @if (politica && collabPeers.length) {
+    <p class="dp-graph-collab" role="status">
+      <strong>Colaboración en vivo:</strong>
+      @for (peer of collabPeers; track peer.sessionId) {
+        <span class="dp-graph-collab-peer">{{ peer.displayName || peer.sessionId }}</span>
+      }
+    </p>
+  }
+
   @if (politica) {
     <div class="admin-panel dp-graph-meta">
       <h3 class="admin-panel-title">Cabecera de política</h3>

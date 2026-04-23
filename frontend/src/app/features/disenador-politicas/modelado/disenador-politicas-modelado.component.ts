@@ -20,7 +20,13 @@ import { Selection } from '@antv/x6-plugin-selection';
 import '@antv/x6-plugin-selection/es/api';
 import '@antv/x6-plugin-keyboard/es/api';
 import { map, distinctUntilChanged } from 'rxjs/operators';
+import { AuthService } from '@core/auth/auth.service';
 import { AreasApiService } from '@features/disenador-politicas/data/areas-api.service';
+import {
+  PoliticasCollaborationService,
+  type PoliticaCollabInbound,
+  type PoliticaCollabPeer,
+} from '@features/disenador-politicas/data/politicas-collaboration.service';
 import { PoliticasApiService } from '@features/disenador-politicas/data/politicas-api.service';
 import { UsuariosAreaApiService } from '@features/disenador-politicas/data/usuarios-area-api.service';
 import type { AreaDto } from '@features/disenador-politicas/models/area.model';
@@ -60,6 +66,8 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
   private readonly api = inject(PoliticasApiService);
   private readonly areasApi = inject(AreasApiService);
   private readonly usuariosAreaApi = inject(UsuariosAreaApiService);
+  private readonly collab = inject(PoliticasCollaborationService);
+  private readonly auth = inject(AuthService);
   private readonly zone = inject(NgZone);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -89,7 +97,14 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
   bannerMsg = '';
   bannerKind: 'info' | 'error' = 'info';
 
+  /** Otros usuarios en la misma sala WebSocket (presencia). */
+  collabPeers: PoliticaCollabPeer[] = [];
+
   readonly tiposFlujo = TIPOS_FLUJO;
+
+  private applyingRemote = false;
+  private lastRemoteRevision = 0;
+  private graphCollabTimer: ReturnType<typeof setTimeout> | null = null;
 
   toolMode: ToolMode = 'select';
   /** En modo «Conectar»: id del nodo origen esperando destino. */
@@ -108,6 +123,10 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
         }
         void this.syncPoliticaId(id);
       });
+
+    this.collab.inbound$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((msg) => this.zone.run(() => this.onCollabInbound(msg)));
   }
 
   ngAfterViewInit(): void {
@@ -121,6 +140,12 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
   }
 
   ngOnDestroy(): void {
+    if (this.graphCollabTimer != null) {
+      clearTimeout(this.graphCollabTimer);
+      this.graphCollabTimer = null;
+    }
+    this.collab.leavePolitica();
+    this.collab.disconnect();
     this.disposeGraph();
   }
 
@@ -403,6 +428,67 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       e.stopPropagation();
       this.zone.run(() => this.selectEdge(edge));
     });
+
+    this.wireCollabGraphEvents();
+  }
+
+  private wireCollabGraphEvents(): void {
+    if (!this.graph) {
+      return;
+    }
+    const schedule = (): void => this.scheduleGraphCollabPush();
+    this.graph.on('cell:added', schedule);
+    this.graph.on('cell:removed', schedule);
+    this.graph.on('cell:change:*', schedule);
+  }
+
+  private scheduleGraphCollabPush(): void {
+    if (this.applyingRemote || !this.graph || !this.politica) {
+      return;
+    }
+    if (!this.auth.isDisenadorPoliticas() && !this.auth.isAdministrador()) {
+      return;
+    }
+    if (this.graphCollabTimer != null) {
+      clearTimeout(this.graphCollabTimer);
+    }
+    this.graphCollabTimer = setTimeout(() => {
+      this.graphCollabTimer = null;
+      if (this.applyingRemote || !this.graph || !this.politica) {
+        return;
+      }
+      const raw = this.graph.toJSON() as { cells?: unknown[] };
+      this.collab.pushGraphCells(raw.cells ?? []);
+    }, 260);
+  }
+
+  private onCollabInbound(msg: PoliticaCollabInbound): void {
+    if (msg.type === 'ERROR') {
+      this.setBanner(msg.message, 'error');
+      return;
+    }
+    if (msg.type === 'PRESENCE_SYNC') {
+      const me = this.collab.getLocalSessionId();
+      this.collabPeers = me ? msg.peers.filter((p) => p.sessionId !== me) : msg.peers;
+      return;
+    }
+    if (msg.type === 'GRAPH_UPDATE') {
+      if (!this.graph || !this.politica || msg.politicaId !== this.politica.id) {
+        return;
+      }
+      if (msg.revision <= this.lastRemoteRevision) {
+        return;
+      }
+      this.applyingRemote = true;
+      this.lastRemoteRevision = msg.revision;
+      try {
+        this.graph.fromJSON({ cells: msg.cells } as never);
+        this.resizeGraph();
+      } finally {
+        this.applyingRemote = false;
+      }
+      return;
+    }
   }
 
   private selectNode(node: Node): void {
@@ -491,6 +577,9 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
     this.clearPendingConnect();
     this.clearSelection();
     if (!id) {
+      this.collab.leavePolitica();
+      this.collabPeers = [];
+      this.lastRemoteRevision = 0;
       this.politica = null;
       this.metaNombre = '';
       this.metaDescripcion = '';
@@ -506,16 +595,25 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       next: (p) => {
         this.politica = p;
         this.patchMetaFromPolitica(p);
+        this.lastRemoteRevision = 0;
         this.graph!.clearCells();
         this.graph!.fromJSON({ cells: buildCellsFromPolitica(p) });
         this.resizeGraph();
         this.graph!.centerContent();
+        if (this.auth.isDisenadorPoliticas() || this.auth.isAdministrador()) {
+          this.collab.joinPolitica(p.id);
+        } else {
+          this.collab.leavePolitica();
+          this.collabPeers = [];
+        }
         this.setBanner(
           'Política cargada en el editor X6. Cada nodo puede tener areaId y asignacionesResponsable (encargado). Guardá el grafo para persistir en Mongo.',
           'info',
         );
       },
       error: (e) => {
+        this.collab.leavePolitica();
+        this.collabPeers = [];
         this.politica = null;
         this.graph!.clearCells();
         this.setBanner(this.msg(e), 'error');

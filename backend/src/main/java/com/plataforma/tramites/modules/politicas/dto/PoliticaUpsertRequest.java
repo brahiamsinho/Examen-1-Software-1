@@ -32,6 +32,11 @@ public class PoliticaUpsertRequest {
     @Valid
     private List<ConexionFlujoRequest> conexiones;
 
+    /**
+     * Concurrencia optimista (obligatorio en PUT; ignorado en POST de alta).
+     */
+    private Long lockVersion;
+
     public String getNombre() {
         return nombre;
     }
@@ -78,6 +83,14 @@ public class PoliticaUpsertRequest {
 
     public void setConexiones(List<ConexionFlujoRequest> conexiones) {
         this.conexiones = conexiones;
+    }
+
+    public Long getLockVersion() {
+        return lockVersion;
+    }
+
+    public void setLockVersion(Long lockVersion) {
+        this.lockVersion = lockVersion;
     }
 
     public static class NodoPoliticaRequest {

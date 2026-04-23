@@ -54,10 +54,31 @@ class TramitesClienteApp extends StatelessWidget {
       title: 'Trámites — Cliente',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0369A1),
+          seedColor: const Color(0xFF0F172A),
           brightness: Brightness.light,
+          surface: const Color(0xFFFAFAFA),
         ),
         useMaterial3: true,
+        inputDecorationTheme: InputDecorationTheme(
+          filled: false,
+          alignLabelWithHint: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          border: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey.shade400),
+          ),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey.shade400),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF0F172A), width: 1.5),
+          ),
+          errorBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.red.shade400),
+          ),
+          focusedErrorBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.red.shade600, width: 1.5),
+          ),
+        ),
       ),
       routerConfig: _router,
     );

@@ -28,6 +28,25 @@
   color: #991b1b;
 }
 
+.dp-graph-collab {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #4c1d95;
+}
+
+.dp-graph-collab-peer {
+  display: inline-block;
+  margin: 0.15rem 0.35rem 0.15rem 0;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: #ede9fe;
+  font-size: 0.8rem;
+}
+
 .dp-graph-meta {
   margin-bottom: 1rem;
 }

@@ -4,6 +4,7 @@ import com.plataforma.tramites.modules.politicas.model.ConexionFlujoEmbeddable;
 import com.plataforma.tramites.modules.politicas.model.NodoPoliticaEmbeddable;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -25,6 +26,13 @@ public class PoliticaNegocioDocument {
     private Instant fechaCreacion;
     private List<NodoPoliticaEmbeddable> nodos = new ArrayList<>();
     private List<ConexionFlujoEmbeddable> conexiones = new ArrayList<>();
+
+    /**
+     * Control de concurrencia optimista (independiente de {@link #version} de negocio). Se expone en API como
+     * {@code lockVersion}; debe enviarse en cada PUT y se incrementa en el servidor al guardar.
+     */
+    @Version
+    private Long lockVersion;
 
     public ObjectId getId() {
         return id;
@@ -88,5 +96,13 @@ public class PoliticaNegocioDocument {
 
     public void setConexiones(List<ConexionFlujoEmbeddable> conexiones) {
         this.conexiones = conexiones != null ? conexiones : new ArrayList<>();
+    }
+
+    public Long getLockVersion() {
+        return lockVersion;
+    }
+
+    public void setLockVersion(Long lockVersion) {
+        this.lockVersion = lockVersion;
     }
 }

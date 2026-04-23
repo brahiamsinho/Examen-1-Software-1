@@ -34,7 +34,7 @@ export class PortalLoginComponent implements OnInit {
     }
     switch (this.portalRol) {
       case 'DISENADOR_POLITICAS':
-        return 'Semilla dev: politicas@tramites.local — contraseña demo123 (Spring + Mongo en marcha; `ng serve` con proxy a /backend).';
+        return 'Semilla dev: politicas@tramites.local o politicas2@tramites.local (dos diseñadores para probar colaboración) — contraseña demo123.';
       case 'ADMINISTRADOR':
         return 'Semilla dev: admin@tramites.local — demo123.';
       case 'RESPONSABLE_AREA':

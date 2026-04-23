@@ -31,6 +31,8 @@ export interface PoliticaNegocioDto {
   nombre: string;
   descripcion: string;
   version: number;
+  /** Concurrencia optimista (Spring `@Version`); obligatorio en PUT. */
+  lockVersion: number;
   estado: string;
   fechaCreacion: string;
   nodos: PoliticaNodoDto[];
@@ -41,6 +43,8 @@ export interface PoliticaUpsertBody {
   nombre: string;
   descripcion: string;
   version: number;
+  /** Obligatorio en PUT; omitir en POST de creación. */
+  lockVersion?: number;
   estado: string;
   nodos: PoliticaNodoUpsert[];
   conexiones: PoliticaConexionUpsert[];
@@ -147,6 +151,7 @@ export function politicaDtoToUpsertBody(p: PoliticaNegocioDto): PoliticaUpsertBo
     nombre: p.nombre,
     descripcion: p.descripcion,
     version: p.version,
+    lockVersion: p.lockVersion ?? 0,
     estado: p.estado,
     nodos: p.nodos.map((n) => ({
       idNodo: n.idNodo,

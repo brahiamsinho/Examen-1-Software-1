@@ -67,6 +67,15 @@ public class PoliticasDominioService {
         PoliticaNegocioDocument doc = politicaNegocioRepository
                 .findById(parseObjectId(id))
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Política no encontrada."));
+        if (body.getLockVersion() == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "lockVersion es obligatorio al actualizar una política.");
+        }
+        long serverLock = doc.getLockVersion() == null ? 0L : doc.getLockVersion();
+        if (!body.getLockVersion().equals(serverLock)) {
+            throw new ApiException(
+                    HttpStatus.CONFLICT,
+                    "La política fue modificada por otro usuario o en otra pestaña. Recargá y volvé a intentar.");
+        }
         politicaNegocioRepository
                 .findByNombreIgnoreCaseAndVersion(body.getNombre().trim(), body.getVersion())
                 .filter(other -> !other.getId().equals(doc.getId()))
@@ -179,11 +188,13 @@ public class PoliticasDominioService {
     }
 
     private PoliticaNegocioResponse toResponse(PoliticaNegocioDocument d) {
+        long lock = d.getLockVersion() == null ? 0L : d.getLockVersion();
         return new PoliticaNegocioResponse(
                 d.getId().toHexString(),
                 d.getNombre(),
                 d.getDescripcion(),
                 d.getVersion(),
+                lock,
                 d.getEstado(),
                 d.getFechaCreacion(),
                 d.getNodos(),

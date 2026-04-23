@@ -45,7 +45,8 @@ public class SecurityConfiguration {
                                                 "/health",
                                                 "/actuator/**",
                                                 "/api/auth/**",
-                                                "/api/seguridad/status")
+                                                "/api/seguridad/status",
+                                                "/ws/politicas")
                                         .permitAll()
                                         .requestMatchers("/api/admin/**")
                                         .hasRole("ADMINISTRADOR")

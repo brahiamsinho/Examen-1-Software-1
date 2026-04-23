@@ -30,6 +30,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- WebSocket (colaboración en tiempo real, p. ej. editor de políticas) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- WebClient (consumo HTTP hacia FastAPI / servicios externos) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
