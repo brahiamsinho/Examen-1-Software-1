@@ -15,6 +15,16 @@ export type PoliticaCollabInbound =
   | { type: 'SESSION_ACK'; sessionId: string }
   | { type: 'PRESENCE_SYNC'; politicaId: string; peers: PoliticaCollabPeer[] }
   | { type: 'GRAPH_UPDATE'; politicaId: string; revision: number; sourceSessionId: string; cells: unknown[] }
+  | {
+      type: 'POINTER';
+      politicaId: string;
+      sourceSessionId: string;
+      displayName: string;
+      visible: boolean;
+      gx?: number;
+      gy?: number;
+      selectedIds?: string[];
+    }
   | { type: 'ERROR'; message: string };
 
 /**
@@ -101,6 +111,33 @@ export class PoliticasCollaborationService {
     this.safeSend(JSON.stringify({ type: 'GRAPH_UPDATE', politicaId: this.roomId, cells }));
   }
 
+  /** Puntero y selección en coordenadas de grafo X6 (como Miro). */
+  pushPointer(gx: number, gy: number, selectedIds: string[], visible: boolean): void {
+    if (this.ws?.readyState !== WebSocket.OPEN || !this.roomId) {
+      return;
+    }
+    if (!visible) {
+      this.safeSend(
+        JSON.stringify({
+          type: 'POINTER',
+          politicaId: this.roomId,
+          visible: false,
+        }),
+      );
+      return;
+    }
+    this.safeSend(
+      JSON.stringify({
+        type: 'POINTER',
+        politicaId: this.roomId,
+        visible: true,
+        gx,
+        gy,
+        selectedIds,
+      }),
+    );
+  }
+
   private flushJoinAndPresence(): void {
     const target = this.pendingJoinPoliticaId;
     if (!target || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -174,6 +211,45 @@ export class PoliticasCollaborationService {
         revision: o['revision'],
         sourceSessionId: o['sourceSessionId'],
         cells: o['cells'] as unknown[],
+      });
+      return;
+    }
+    if (
+      type === 'POINTER' &&
+      typeof o['politicaId'] === 'string' &&
+      typeof o['sourceSessionId'] === 'string' &&
+      typeof o['visible'] === 'boolean'
+    ) {
+      const visible = o['visible'] as boolean;
+      const base = {
+        type: 'POINTER' as const,
+        politicaId: o['politicaId'] as string,
+        sourceSessionId: o['sourceSessionId'] as string,
+        displayName: typeof o['displayName'] === 'string' ? o['displayName'] : '',
+        visible,
+      };
+      if (!visible) {
+        this.inbound$.next(base);
+        return;
+      }
+      const gx = o['gx'];
+      const gy = o['gy'];
+      if (typeof gx !== 'number' || typeof gy !== 'number') {
+        return;
+      }
+      const selectedIds: string[] = [];
+      if (Array.isArray(o['selectedIds'])) {
+        for (const id of o['selectedIds'] as unknown[]) {
+          if (typeof id === 'string' && id.trim()) {
+            selectedIds.push(id.trim());
+          }
+        }
+      }
+      this.inbound$.next({
+        ...base,
+        gx,
+        gy,
+        selectedIds,
       });
       return;
     }

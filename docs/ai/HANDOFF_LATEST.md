@@ -8,11 +8,18 @@
 ## Último cambio relevante (mobile Flutter)
 
 - **Login portal cliente**: UI minimalista; integración existente con Spring `POST /api/auth/login` y campos homónimos a `usuarios` en `script.db` (`correo`, contrasena hasheada en servidor). Tema global con inputs subrayados.
+- **Nuevo flujo de ingreso**: cliente sube documento sin seleccionar política; mensaje de confirmación indica ingreso en atención al cliente.
+
+## Último cambio relevante (planificador + flujo paralelo)
+
+- **Rol** `PLANIFICADOR` en `PortalRol`, semilla `planificador@tramites.local`, seguridad `/api/planificador/**`.
+- **API**: `GET /api/planificador/tramites/pendientes-politica`, `POST /api/planificador/tramites/{id}/asignar-politica`; `GET/POST` bajo `/api/tramites/{id}/flujo/...` para salidas del grafo y aprobación de ramas `PARALELO` (join por sucesor común directo).
+- **Angular**: portal `/acceso/planificador`, módulo lazy `/planificador/pendientes` con tabla y asignación de política.
 
 ## Último cambio relevante (frontend Angular)
 
 - **Login por portal** (`/acceso/politicas`): lectura robusta de `portalRol` desde el árbol de rutas; bloqueo con mensaje claro si falta; pistas de credenciales de **semilla dev** solo cuando no es producción.
-- **Diseñador de políticas / modelado**: editor **AntV X6** en `/disenador/modelado`; REST `GET/PUT /api/politicas` con **`lockVersion`** en cuerpo/respuesta; **WebSocket** colaborativo (`PoliticasCollaborationService` → `ws(s)://host/backend/ws/politicas?access_token=…`) con presencia y sync debounced del grafo entre diseñador y administrador.
+- **Diseñador de políticas / modelado**: editor **AntV X6** en `/disenador/modelado`; REST `GET/PUT /api/politicas` con **`lockVersion`** en cuerpo/respuesta; **WebSocket** colaborativo (`PoliticasCollaborationService` → `ws(s)://host/backend/ws/politicas?access_token=…`) con presencia y sync debounced del grafo entre diseñador y administrador. **Deshacer/Rehacer** con `@antv/x6-plugin-history` (botones + Ctrl+Z / Ctrl+Y / Ctrl+Mayús+Z); al cargar política o al aplicar `GRAPH_UPDATE` remoto se **limpia** el historial para no mezclar con colaboración.
 
 ## Último cambio relevante (WebSocket + Nginx)
 
@@ -21,9 +28,9 @@
 
 ### Qué tocar a continuación
 
-1. Angular: listados de trámites en diseñador si aplica; opcional: operaciones incrementales en WS o CRDT para menos `fromJSON` completo.
-2. Spring: **autorización fina por actor** en endpoints de dominio (hoy: JWT autenticado genérico).
-3. Pruebas integración Mongo / transiciones de estado de trámite.
+1. Backend: evaluar `condicion` en conexiones al avanzar de nodo (motor de reglas o integración con datos del trámite).
+2. Backend: join paralelo más allá del sucesor común directo (multi-hop o nodo sync explícito).
+3. Pruebas integración Mongo / transiciones de estado de trámite y flujo paralelo.
 
 ### Archivos guía
 

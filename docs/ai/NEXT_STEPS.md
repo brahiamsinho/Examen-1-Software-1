@@ -1,7 +1,7 @@
 # Próximos pasos sugeridos
 
-1. Mobile Flutter: tras login, persistir JWT de forma segura y rehidratar sesión al abrir la app (hoy el token vive solo en memoria).
-2. Persistencia adicional del grafo (export BPMN/XML u optimización de sync incremental); el catálogo y el editor ya consumen REST de políticas y el modelado X6 colabora en vivo vía WebSocket.
-3. Añadir pruebas unitarias del `ApiService`, del login por portal y, si aplica, del flujo de import/export BPMN.
-4. Revisar CORS y JWT en despliegue Nginx + Spring (ya hay CORS dev y stateless JWT).
-5. Completar artefactos PUDS en `docs/ai/` (visión, arquitectura, trazabilidad) si el curso lo exige.
+1. Backend: evaluación de condiciones en aristas (`condicion`) y avance secuencial guiado por API o tarea.
+2. Backend: join en paralelo multi-salto (BFS) o nodo explícito tipo sincronización en el modelo de política.
+3. Mobile Flutter: agregar pantalla de tracking de estado/recorridos del trámite enviado.
+4. Añadir pruebas unitarias/integración del nuevo flujo de ingreso cliente sin selección de política.
+5. Revisar CORS/JWT y completar artefactos PUDS en `docs/ai/` (trazabilidad del nuevo flujo).

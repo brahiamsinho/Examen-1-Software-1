@@ -95,6 +95,43 @@
         <span>Conectar</span>
       </button>
       <div class="dp-graph-toolbox-divider" role="presentation"></div>
+      <button
+        type="button"
+        class="dp-graph-toolbox-btn"
+        (click)="undoGrafo()"
+        [disabled]="!canUndo"
+        title="Deshacer (Ctrl+Z)"
+        aria-keyshortcuts="Control+Z"
+      >
+        <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
+          <path
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 14L4 9l5-5M4 9h7.5A5.5 5.5 0 0 1 17 20"
+          />
+        </svg>
+        <span>Deshacer</span>
+      </button>
+      <button
+        type="button"
+        class="dp-graph-toolbox-btn"
+        (click)="redoGrafo()"
+        [disabled]="!canRedo"
+        title="Rehacer (Ctrl+Y o Ctrl+Mayús+Z)"
+        aria-keyshortcuts="Control+Y Control+Shift+Z"
+      >
+        <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
+          <path
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15 14l5-5-5-5M20 9h-7.5A5.5 5.5 0 0 0 7 20"
+          />
+        </svg>
+        <span>Rehacer</span>
+      </button>
+      <div class="dp-graph-toolbox-divider" role="presentation"></div>
       <button type="button" class="dp-graph-toolbox-btn" (click)="zoomIn()" title="Acercar">
         <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
           <circle cx="11" cy="11" r="6" stroke-width="2" />
@@ -134,18 +171,36 @@
         <button type="button" class="admin-secondary-btn dp-graph-tool" (click)="agregarNodo('FIN')">Fin</button>
         <button type="button" class="admin-secondary-btn dp-graph-tool" (click)="reiniciarVista()">Recargar política</button>
       </div>
-      <div
-        #graphHost
-        class="dp-graph-host"
-        tabindex="0"
-        role="application"
-        aria-label="Lienzo del diagrama de política"
-      ></div>
+      <div #graphWrap class="dp-graph-canvas-wrap">
+        <div
+          #graphHost
+          class="dp-graph-host"
+          tabindex="0"
+          role="application"
+          aria-label="Lienzo del diagrama de política"
+        ></div>
+        @if (remotePointerList.length) {
+          <div class="dp-graph-remote-layer" aria-hidden="true">
+            @for (r of remotePointerList; track r.sessionId) {
+              <div class="dp-graph-remote-cursor" [style.left.px]="r.px" [style.top.px]="r.py">
+                <span class="dp-graph-remote-cursor-dot" [style.background]="r.color"></span>
+                <div class="dp-graph-remote-cursor-card" [style.borderColor]="r.color">
+                  <span class="dp-graph-remote-cursor-name">{{ r.displayName }}</span>
+                  @if (r.selectionSummary) {
+                    <span class="dp-graph-remote-cursor-sel">{{ r.selectionSummary }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
       <p class="dp-graph-hint">
         <strong>Relaciones:</strong> arrastrá desde un puerto de salida (abajo) hasta la entrada (arriba) de otro nodo.
         Desde un mismo nodo podés sacar <strong>varias flechas</strong> a distintos departamentos. Con la herramienta
         «Conectar», clic en origen y clic en destino (repetí para más ramas). <strong>Suprimir</strong> o
-        <strong>Retroceso</strong> borra lo seleccionado. <strong>ESC</strong> cancela modo conectar.
+        <strong>Retroceso</strong> borra lo seleccionado. <strong>Ctrl+Z / Ctrl+Y</strong> deshace y rehace cambios en
+        el diagrama. <strong>ESC</strong> cancela modo conectar.
       </p>
       <p class="dp-graph-manage-areas">
         <a routerLink="/disenador/areas" class="dp-graph-inline-link">Gestionar áreas / departamentos</a>

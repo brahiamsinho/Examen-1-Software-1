@@ -1,0 +1,25 @@
+.pla-app.modulo-app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  font-family: 'Fira Sans', 'Lato', system-ui, sans-serif;
+  color: #020617;
+  background: #f8fafc;
+}
+
+.pla-sidebar.modulo-sidebar {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 0.9rem;
+  background: linear-gradient(180deg, #1e3a8a 0%, #172554 100%);
+  color: #e2e8f0;
+  border-right: 1px solid #2563eb;
+}
+
+.pla-sidebar .modulo-nav-item.is-active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.pla-topbar.modulo-topbar {
+  border-bottom: 1px solid #e2e8f0;
+}

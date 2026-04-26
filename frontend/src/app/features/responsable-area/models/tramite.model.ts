@@ -8,7 +8,7 @@ export interface TramiteDto {
   prioridad: string;
   estado: string;
   numeroTurno: number;
-  politicaId: string;
+  politicaId: string | null;
   clienteId: string;
   nodoActualId: string | null;
   areaActualId: string | null;

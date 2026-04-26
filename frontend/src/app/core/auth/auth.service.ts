@@ -54,6 +54,8 @@ export class AuthService {
         return '/disenador';
       case 'RESPONSABLE_AREA':
         return '/responsable-area';
+      case 'PLANIFICADOR':
+        return '/planificador';
       default:
         return '/dashboard';
     }

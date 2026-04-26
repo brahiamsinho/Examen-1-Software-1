@@ -1,0 +1,44 @@
+<div class="pla-app modulo-app">
+  <aside class="modulo-sidebar pla-sidebar" aria-label="Navegación planificador">
+    <div class="modulo-sidebar-brand">
+      <span class="modulo-sidebar-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M4 4h16v4H4V4zm0 6h10v2H4v-2zm0 4h16v2H4v-2zm0 4h12v2H4v-2z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <div class="modulo-sidebar-titles">
+        <span class="modulo-sidebar-kicker">Portal</span>
+        <span class="modulo-sidebar-title">Planificador</span>
+      </div>
+    </div>
+    <nav class="modulo-nav" aria-label="Secciones">
+      <a routerLink="/planificador/pendientes" routerLinkActive="is-active" class="modulo-nav-item"
+        >Pendientes de política</a
+      >
+    </nav>
+    <a routerLink="/dashboard" class="modulo-sidebar-footer">Volver al portal</a>
+  </aside>
+  <div class="modulo-main-col">
+    <header class="modulo-topbar pla-topbar">
+      <div class="modulo-topbar-text">
+        <h1 class="modulo-topbar-title">Asignación de políticas</h1>
+        <p class="modulo-topbar-sub">
+          @if (auth.getCorreo(); as cMail) {
+            <span>Sesión: {{ cMail }}</span>
+          } @else {
+            <span>Sesión activa</span>
+          }
+        </p>
+      </div>
+      <button type="button" class="modulo-btn modulo-btn-ghost" (click)="auth.logout()">Cerrar sesión</button>
+    </header>
+    <main class="modulo-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

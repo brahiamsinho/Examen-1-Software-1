@@ -12,6 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -62,6 +63,7 @@ public class PoliticasCollabWebSocketHandler extends TextWebSocketHandler {
             case "LEAVE" -> handleLeave(session);
             case "PRESENCE" -> handlePresence(session, root);
             case "GRAPH_UPDATE" -> handleGraphUpdate(session, root);
+            case "POINTER" -> handlePointer(session, root);
             default -> sendError(session, "type desconocido: " + type);
         }
     }
@@ -121,6 +123,47 @@ public class PoliticasCollabWebSocketHandler extends TextWebSocketHandler {
         rooms.broadcastJson(politicaId, session, objectMapper.writeValueAsString(out));
     }
 
+    private void handlePointer(WebSocketSession session, JsonNode root) throws Exception {
+        String politicaId = (String) session.getAttributes().get(PoliticasCollabAttributes.POLITICA_ID);
+        if (politicaId == null) {
+            sendError(session, "Unite a una sala con JOIN primero.");
+            return;
+        }
+        boolean visible = !root.has("visible") || root.get("visible").asBoolean(true);
+        String displayName =
+                Optional.ofNullable((String) session.getAttributes().get(PoliticasCollabAttributes.DISPLAY_NAME))
+                        .orElse("");
+        ObjectNode out = objectMapper.createObjectNode();
+        out.put("type", "POINTER");
+        out.put("politicaId", politicaId);
+        out.put("sourceSessionId", session.getId());
+        out.put("displayName", displayName);
+        out.put("visible", visible);
+        if (visible) {
+            JsonNode gx = root.get("gx");
+            JsonNode gy = root.get("gy");
+            if (gx == null || !gx.isNumber() || gy == null || !gy.isNumber()) {
+                sendError(session, "POINTER con visible=true requiere gx y gy numéricos.");
+                return;
+            }
+            out.put("gx", gx.asDouble());
+            out.put("gy", gy.asDouble());
+            ArrayNode arr = out.putArray("selectedIds");
+            JsonNode ids = root.get("selectedIds");
+            if (ids != null && ids.isArray()) {
+                for (JsonNode id : ids) {
+                    if (id != null && id.isTextual()) {
+                        String t = id.asText().trim();
+                        if (!t.isEmpty()) {
+                            arr.add(t);
+                        }
+                    }
+                }
+            }
+        }
+        rooms.broadcastJson(politicaId, session, objectMapper.writeValueAsString(out));
+    }
+
     private void broadcastPresenceSync(String politicaId) throws Exception {
         List<PoliticasCollabRoomRegistry.PeerInfo> peers = rooms.listPeers(politicaId);
         ObjectNode out = objectMapper.createObjectNode();
@@ -138,14 +181,25 @@ public class PoliticasCollabWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         String politicaId = (String) session.getAttributes().get(PoliticasCollabAttributes.POLITICA_ID);
+        String deadSessionId = session.getId();
         rooms.removeSessionEverywhere(session);
         if (politicaId != null) {
             try {
                 broadcastPresenceSync(politicaId);
+                broadcastPointerHidden(politicaId, deadSessionId);
             } catch (Exception ignored) {
                 // cierre en curso
             }
         }
+    }
+
+    private void broadcastPointerHidden(String politicaId, String sourceSessionId) throws Exception {
+        ObjectNode out = objectMapper.createObjectNode();
+        out.put("type", "POINTER");
+        out.put("politicaId", politicaId);
+        out.put("sourceSessionId", sourceSessionId);
+        out.put("visible", false);
+        rooms.broadcastJson(politicaId, null, objectMapper.writeValueAsString(out));
     }
 
     private void sendError(WebSocketSession session, String msg) throws Exception {

@@ -1,0 +1,69 @@
+<section class="pla-pend" aria-labelledby="pla-pend-title">
+  <h2 id="pla-pend-title" class="pla-pend-title">Trámites sin política asignada</h2>
+  <p class="pla-pend-lead">
+    Estos expedientes ingresaron por atención al cliente. Asigná la política de negocio correcta; el sistema los ubica
+    en el nodo inicial (<code>esInicial</code>) de esa política.
+  </p>
+
+  @if (errorMsg) {
+    <p class="pla-pend-error" role="alert">{{ errorMsg }}</p>
+  }
+
+  @if (loading) {
+    <p class="pla-pend-loading" role="status">Cargando…</p>
+  } @else if (tramites.length === 0) {
+    <p class="pla-pend-empty">No hay trámites pendientes de asignación.</p>
+  } @else {
+    <div class="pla-table-wrap">
+      <table class="pla-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Asunto</th>
+            <th>Cliente</th>
+            <th>Nodo actual</th>
+            <th>Política</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of tramites; track t.id) {
+            <tr>
+              <td><code>{{ t.codigo }}</code></td>
+              <td>{{ t.asunto }}</td>
+              <td>{{ t.clienteId }}</td>
+              <td>{{ t.nodoActualId ?? '—' }}</td>
+              <td>
+                <select class="pla-select" [(ngModel)]="seleccionPolitica[t.id]" [name]="'pol-' + t.id">
+                  @for (p of politicas; track p.id) {
+                    <option [value]="p.id">{{ p.nombre }} (v{{ p.version }})</option>
+                  }
+                </select>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="pla-btn"
+                  (click)="asignar(t)"
+                  [disabled]="assigning[t.id] || politicas.length === 0"
+                >
+                  {{ assigning[t.id] ? 'Asignando…' : 'Asignar' }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages > 1) {
+      <nav class="pla-pager" aria-label="Paginación">
+        <button type="button" class="pla-pager-btn" (click)="setPage(page - 1)" [disabled]="page <= 0">Anterior</button>
+        <span class="pla-pager-meta">Página {{ page + 1 }} de {{ totalPages }} ({{ totalElements }})</span>
+        <button type="button" class="pla-pager-btn" (click)="setPage(page + 1)" [disabled]="page >= totalPages - 1">
+          Siguiente
+        </button>
+      </nav>
+    }
+  }
+</section>

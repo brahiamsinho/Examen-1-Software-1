@@ -15,8 +15,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Graph, Shape, type Edge, type Node } from '@antv/x6';
+import { History } from '@antv/x6-plugin-history';
 import { Keyboard } from '@antv/x6-plugin-keyboard';
 import { Selection } from '@antv/x6-plugin-selection';
+import '@antv/x6-plugin-history/es/api';
 import '@antv/x6-plugin-selection/es/api';
 import '@antv/x6-plugin-keyboard/es/api';
 import { map, distinctUntilChanged } from 'rxjs/operators';
@@ -52,6 +54,23 @@ const TIPOS_FLUJO = ['SECUENCIAL', 'ALTERNATIVO', 'PARALELO', 'MULTILINEAL'] as 
 
 type ToolMode = 'select' | 'connect';
 
+function collabColorForSession(sessionId: string): string {
+  let h = 0;
+  for (let i = 0; i < sessionId.length; i += 1) {
+    h = (h * 31 + sessionId.charCodeAt(i)) >>> 0;
+  }
+  return `hsl(${h % 360} 72% 42%)`;
+}
+
+export interface RemotePointerUi {
+  sessionId: string;
+  displayName: string;
+  px: number;
+  py: number;
+  color: string;
+  selectionSummary: string;
+}
+
 @Component({
   selector: 'app-disenador-politicas-modelado',
   standalone: true,
@@ -60,6 +79,7 @@ type ToolMode = 'select' | 'connect';
   styleUrl: './disenador-politicas-modelado.component.scss',
 })
 export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('graphWrap', { static: true }) private readonly graphWrap!: ElementRef<HTMLDivElement>;
   @ViewChild('graphHost', { static: true }) private readonly graphHost!: ElementRef<HTMLDivElement>;
 
   private readonly route = inject(ActivatedRoute);
@@ -72,6 +92,10 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
   private readonly destroyRef = inject(DestroyRef);
 
   private graph: Graph | null = null;
+
+  /** Estado del plugin History (Deshacer / Rehacer). */
+  canUndo = false;
+  canRedo = false;
 
   politica: PoliticaNegocioDto | null = null;
   metaNombre = '';
@@ -100,11 +124,37 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
   /** Otros usuarios en la misma sala WebSocket (presencia). */
   collabPeers: PoliticaCollabPeer[] = [];
 
+  /** Punteros remotos (posición ya en px relativos al lienzo). */
+  remotePointerList: RemotePointerUi[] = [];
+
   readonly tiposFlujo = TIPOS_FLUJO;
 
   private applyingRemote = false;
   private lastRemoteRevision = 0;
   private graphCollabTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private readonly remotePointerBySession = new Map<
+    string,
+    { displayName: string; gx: number; gy: number; selectedIds: string[]; visible: boolean }
+  >();
+  private readonly remoteHighlightEls = new Map<string, HTMLElement[]>();
+
+  private lastPointerClientX = 0;
+  private lastPointerClientY = 0;
+  private pointerRaf: number | null = null;
+
+  private readonly onGraphWrapPointerMove = (e: PointerEvent): void => {
+    this.lastPointerClientX = e.clientX;
+    this.lastPointerClientY = e.clientY;
+    this.scheduleLocalPointerSend();
+  };
+
+  private readonly onGraphWrapPointerLeave = (): void => {
+    if (!this.auth.isDisenadorPoliticas() && !this.auth.isAdministrador()) {
+      return;
+    }
+    this.collab.pushPointer(0, 0, [], false);
+  };
 
   toolMode: ToolMode = 'select';
   /** En modo «Conectar»: id del nodo origen esperando destino. */
@@ -144,6 +194,10 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       clearTimeout(this.graphCollabTimer);
       this.graphCollabTimer = null;
     }
+    if (this.pointerRaf != null) {
+      cancelAnimationFrame(this.pointerRaf);
+      this.pointerRaf = null;
+    }
     this.collab.leavePolitica();
     this.collab.disconnect();
     this.disposeGraph();
@@ -152,6 +206,7 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
   @HostListener('window:resize')
   onWinResize(): void {
     this.resizeGraph();
+    this.rebuildRemotePointerList();
   }
 
   @HostListener('document:keydown.escape')
@@ -187,6 +242,20 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
 
   zoomFit(): void {
     this.graph?.zoomToFit({ padding: 24, maxScale: 1.2 });
+  }
+
+  undoGrafo(): void {
+    if (!this.graph?.canUndo()) {
+      return;
+    }
+    this.graph.undo();
+  }
+
+  redoGrafo(): void {
+    if (!this.graph?.canRedo()) {
+      return;
+    }
+    this.graph.redo();
   }
 
   guardarMetadatos(): void {
@@ -381,13 +450,43 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
         showNodeSelectionBox: true,
       }),
     );
+    this.graph.use(
+      new History({
+        enabled: true,
+        /** 0 = ilimitado; con políticas medianas basta; evita crecer sin tope. */
+        stackSize: 300,
+      }),
+    );
     this.graph.use(new Keyboard({ enabled: true, global: true }));
+
+    this.graph.on('history:change', () => {
+      this.zone.run(() => this.syncHistoryButtonState());
+    });
 
     this.graph.bindKey(['backspace', 'delete'], () => {
       const cells = this.graph?.getSelectedCells() ?? [];
       if (cells.length) {
         this.graph?.removeCells(cells);
         this.clearSelection();
+      }
+    });
+
+    this.graph.bindKey(['meta+z', 'ctrl+z'], (e) => {
+      if (this.isTextInputFocused()) {
+        return;
+      }
+      e.preventDefault();
+      if (this.graph?.canUndo()) {
+        this.graph.undo();
+      }
+    });
+    this.graph.bindKey(['meta+shift+z', 'ctrl+shift+z', 'meta+y', 'ctrl+y'], (e) => {
+      if (this.isTextInputFocused()) {
+        return;
+      }
+      e.preventDefault();
+      if (this.graph?.canRedo()) {
+        this.graph.redo();
       }
     });
 
@@ -404,10 +503,10 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       });
     });
 
-    this.graph.on('blank:click', () => {
+    this.graph.on('blank:click', ({ e }) => {
       this.zone.run(() => {
         this.clearPendingConnect();
-        this.clearSelection();
+        this.clearSelection({ x: e.clientX, y: e.clientY });
       });
     });
 
@@ -416,9 +515,9 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       e.stopPropagation();
       this.zone.run(() => {
         if (this.toolMode === 'connect') {
-          this.handleNodeClickConnect(node);
+          this.handleNodeClickConnect(node, e.clientX, e.clientY);
         } else {
-          this.selectNode(node);
+          this.selectNode(node, { x: e.clientX, y: e.clientY });
         }
       });
     });
@@ -426,10 +525,27 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
     this.graph.on('edge:click', ({ e, edge }) => {
       e.preventDefault();
       e.stopPropagation();
-      this.zone.run(() => this.selectEdge(edge));
+      this.zone.run(() => this.selectEdge(edge, { x: e.clientX, y: e.clientY }));
     });
 
     this.wireCollabGraphEvents();
+    this.wirePointerAndRemoteLayer();
+    this.syncHistoryButtonState();
+  }
+
+  private readonly onGraphTransformForRemote = (): void => {
+    this.zone.run(() => this.rebuildRemotePointerList());
+  };
+
+  private wirePointerAndRemoteLayer(): void {
+    if (!this.graph) {
+      return;
+    }
+    const wrap = this.graphWrap.nativeElement;
+    wrap.addEventListener('pointermove', this.onGraphWrapPointerMove, { passive: true });
+    wrap.addEventListener('pointerleave', this.onGraphWrapPointerLeave);
+    this.graph.on('scale', this.onGraphTransformForRemote);
+    this.graph.on('translate', this.onGraphTransformForRemote);
   }
 
   private wireCollabGraphEvents(): void {
@@ -472,6 +588,34 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       this.collabPeers = me ? msg.peers.filter((p) => p.sessionId !== me) : msg.peers;
       return;
     }
+    if (msg.type === 'POINTER') {
+      if (!this.graph || !this.politica || msg.politicaId !== this.politica.id) {
+        return;
+      }
+      const me = this.collab.getLocalSessionId();
+      if (me && msg.sourceSessionId === me) {
+        return;
+      }
+      if (!msg.visible) {
+        this.remotePointerBySession.delete(msg.sourceSessionId);
+        this.clearRemoteHighlights(msg.sourceSessionId);
+        this.rebuildRemotePointerList();
+        return;
+      }
+      if (msg.gx == null || msg.gy == null) {
+        return;
+      }
+      this.remotePointerBySession.set(msg.sourceSessionId, {
+        displayName: msg.displayName,
+        gx: msg.gx,
+        gy: msg.gy,
+        selectedIds: msg.selectedIds ?? [],
+        visible: true,
+      });
+      this.rebuildRemotePointerList();
+      this.applyRemoteHighlights(msg.sourceSessionId, msg.selectedIds ?? [], collabColorForSession(msg.sourceSessionId));
+      return;
+    }
     if (msg.type === 'GRAPH_UPDATE') {
       if (!this.graph || !this.politica || msg.politicaId !== this.politica.id) {
         return;
@@ -482,16 +626,17 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       this.applyingRemote = true;
       this.lastRemoteRevision = msg.revision;
       try {
-        this.graph.fromJSON({ cells: msg.cells } as never);
+        this.applyRemoteGraphCells(msg.cells);
         this.resizeGraph();
       } finally {
         this.applyingRemote = false;
       }
+      this.refreshRemoteHighlightsAfterGraphChange();
       return;
     }
   }
 
-  private selectNode(node: Node): void {
+  private selectNode(node: Node, client?: { x: number; y: number }): void {
     this.selectedEdge = null;
     this.graph?.cleanSelection();
     this.graph?.resetSelection(node);
@@ -502,9 +647,14 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
     const first = d.asignacionesResponsable?.[0];
     this.inspNodoResponsableId = first?.usuarioId ?? '';
     this.cargarUsuariosArea(this.inspNodoAreaId);
+    if (client) {
+      this.lastPointerClientX = client.x;
+      this.lastPointerClientY = client.y;
+      this.flushLocalPointer(client.x, client.y);
+    }
   }
 
-  private selectEdge(edge: Edge): void {
+  private selectEdge(edge: Edge, client?: { x: number; y: number }): void {
     this.selectedNode = null;
     this.graph?.cleanSelection();
     this.graph?.resetSelection(edge);
@@ -512,36 +662,55 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
     const d = edge.getData() as PoliticaEdgeCellData | undefined;
     this.inspEdgeTipoFlujo = (d?.tipoFlujo as (typeof TIPOS_FLUJO)[number]) ?? 'SECUENCIAL';
     this.inspEdgeCondicion = d?.condicion ?? '';
+    if (client) {
+      this.lastPointerClientX = client.x;
+      this.lastPointerClientY = client.y;
+      this.flushLocalPointer(client.x, client.y);
+    }
   }
 
-  private clearSelection(): void {
+  private clearSelection(client?: { x: number; y: number }): void {
     this.graph?.cleanSelection();
     this.selectedNode = null;
     this.selectedEdge = null;
     this.usuariosDelArea = [];
+    if (client) {
+      this.lastPointerClientX = client.x;
+      this.lastPointerClientY = client.y;
+      this.flushLocalPointer(client.x, client.y);
+    }
   }
 
   private clearPendingConnect(): void {
     this.pendingConnectSourceId = null;
   }
 
-  private handleNodeClickConnect(node: Node): void {
+  private handleNodeClickConnect(node: Node, clientX: number, clientY: number): void {
     if (!this.graph) {
       return;
     }
     const id = node.id;
     if (!this.pendingConnectSourceId) {
       this.pendingConnectSourceId = id;
+      this.lastPointerClientX = clientX;
+      this.lastPointerClientY = clientY;
+      this.flushLocalPointer(clientX, clientY);
       this.setBanner('Origen elegido. Hacé clic en el nodo destino (podés crear varias ramas al mismo origen).', 'info');
       return;
     }
     if (this.pendingConnectSourceId === id) {
       this.clearPendingConnect();
+      this.lastPointerClientX = clientX;
+      this.lastPointerClientY = clientY;
+      this.flushLocalPointer(clientX, clientY);
       this.setBanner('Origen cancelado. Elegí de nuevo el primer nodo.', 'info');
       return;
     }
     this.graph.addEdge(createPoliticaEdgeBetween(this.pendingConnectSourceId, id));
     this.clearPendingConnect();
+    this.lastPointerClientX = clientX;
+    this.lastPointerClientY = clientY;
+    this.flushLocalPointer(clientX, clientY);
     this.setBanner(
       'Flecha creada. Si es bifurcación paralela, seleccioná la flecha y en el inspector poné tipo de flujo PARALELO. Podés enlazar de nuevo desde el mismo origen.',
       'info',
@@ -556,9 +725,24 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
     const w = Math.max(320, el.clientWidth);
     const h = Math.max(400, el.clientHeight);
     this.graph.resize(w, h);
+    this.rebuildRemotePointerList();
   }
 
   private disposeGraph(): void {
+    if (this.pointerRaf != null) {
+      cancelAnimationFrame(this.pointerRaf);
+      this.pointerRaf = null;
+    }
+    const wrap = this.graphWrap?.nativeElement;
+    if (wrap) {
+      wrap.removeEventListener('pointermove', this.onGraphWrapPointerMove);
+      wrap.removeEventListener('pointerleave', this.onGraphWrapPointerLeave);
+    }
+    if (this.graph) {
+      this.graph.off('scale', this.onGraphTransformForRemote);
+      this.graph.off('translate', this.onGraphTransformForRemote);
+    }
+    this.clearAllRemotePointerUi();
     this.graph?.dispose();
     this.graph = null;
   }
@@ -577,6 +761,7 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
     this.clearPendingConnect();
     this.clearSelection();
     if (!id) {
+      this.clearAllRemotePointerUi();
       this.collab.leavePolitica();
       this.collabPeers = [];
       this.lastRemoteRevision = 0;
@@ -585,19 +770,19 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       this.metaDescripcion = '';
       this.metaVersion = 1;
       this.metaEstado = 'BORRADOR';
-      this.graph.clearCells();
+      this.clearGraphAndHistory();
       this.setBanner('Sin política seleccionada. Abrí una desde el catálogo para modelar nodos y departamentos.', 'info');
       return;
     }
 
     this.setBanner('Cargando política…', 'info');
+    this.clearAllRemotePointerUi();
     this.api.getById(id).subscribe({
       next: (p) => {
         this.politica = p;
         this.patchMetaFromPolitica(p);
         this.lastRemoteRevision = 0;
-        this.graph!.clearCells();
-        this.graph!.fromJSON({ cells: buildCellsFromPolitica(p) });
+        this.replaceEntireGraphFromJsonCells(buildCellsFromPolitica(p) as unknown[]);
         this.resizeGraph();
         this.graph!.centerContent();
         if (this.auth.isDisenadorPoliticas() || this.auth.isAdministrador()) {
@@ -612,10 +797,11 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
         );
       },
       error: (e) => {
+        this.clearAllRemotePointerUi();
         this.collab.leavePolitica();
         this.collabPeers = [];
         this.politica = null;
-        this.graph!.clearCells();
+        this.clearGraphAndHistory();
         this.setBanner(this.msg(e), 'error');
       },
     });
@@ -624,6 +810,226 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
   private setBanner(text: string, kind: 'info' | 'error'): void {
     this.bannerMsg = text;
     this.bannerKind = kind;
+  }
+
+  private isTextInputFocused(): boolean {
+    const el = document.activeElement;
+    if (!el) {
+      return false;
+    }
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+      return true;
+    }
+    if (el instanceof HTMLSelectElement) {
+      return true;
+    }
+    return el.getAttribute('contenteditable') === 'true';
+  }
+
+  private syncHistoryButtonState(): void {
+    if (!this.graph) {
+      this.canUndo = false;
+      this.canRedo = false;
+      return;
+    }
+    this.canUndo = this.graph.canUndo();
+    this.canRedo = this.graph.canRedo();
+  }
+
+  /** Carga/reset de grafo sin dejar en el historial un “deshacer” a estado vacío o añadir pasos. */
+  private clearGraphAndHistory(): void {
+    if (!this.graph) {
+      return;
+    }
+    this.graph.disableHistory();
+    try {
+      this.graph.clearCells();
+    } finally {
+      this.graph.enableHistory();
+      this.graph.cleanHistory();
+    }
+    this.syncHistoryButtonState();
+  }
+
+  private replaceEntireGraphFromJsonCells(cells: unknown[]): void {
+    if (!this.graph) {
+      return;
+    }
+    this.graph.disableHistory();
+    try {
+      this.graph.clearCells();
+      this.graph.fromJSON({ cells: cells as never });
+    } finally {
+      this.graph.enableHistory();
+      this.graph.cleanHistory();
+    }
+    this.syncHistoryButtonState();
+  }
+
+  private applyRemoteGraphCells(cells: unknown[]): void {
+    if (!this.graph) {
+      return;
+    }
+    this.graph.disableHistory();
+    try {
+      this.graph.fromJSON({ cells: cells as never });
+    } finally {
+      this.graph.enableHistory();
+      this.graph.cleanHistory();
+    }
+    this.syncHistoryButtonState();
+  }
+
+  private scheduleLocalPointerSend(): void {
+    if (!this.graph || !this.politica || this.applyingRemote) {
+      return;
+    }
+    if (!this.auth.isDisenadorPoliticas() && !this.auth.isAdministrador()) {
+      return;
+    }
+    if (this.pointerRaf != null) {
+      return;
+    }
+    this.pointerRaf = requestAnimationFrame(() => {
+      this.pointerRaf = null;
+      this.flushLocalPointer(this.lastPointerClientX, this.lastPointerClientY);
+    });
+  }
+
+  private flushLocalPointer(clientX: number, clientY: number): void {
+    if (!this.graph || !this.politica || this.applyingRemote) {
+      return;
+    }
+    if (!this.auth.isDisenadorPoliticas() && !this.auth.isAdministrador()) {
+      return;
+    }
+    const g = this.graph as unknown as {
+      clientToGraph(x: number, y: number): { x: number; y: number };
+    };
+    const gp = g.clientToGraph(clientX, clientY);
+    this.collab.pushPointer(gp.x, gp.y, this.getSelectedCellIds(), true);
+  }
+
+  private getSelectedCellIds(): string[] {
+    if (!this.graph) {
+      return [];
+    }
+    const g = this.graph as unknown as { getSelectedCells(): { id: string }[] };
+    try {
+      return g.getSelectedCells().map((c) => c.id);
+    } catch {
+      return [];
+    }
+  }
+
+  private rebuildRemotePointerList(): void {
+    if (!this.graph) {
+      this.remotePointerList = [];
+      return;
+    }
+    const wrap = this.graphWrap.nativeElement;
+    const wr = wrap.getBoundingClientRect();
+    const g = this.graph as unknown as {
+      graphToLocal(x: number, y: number): { x: number; y: number };
+      localToClient(x: number, y: number): { x: number; y: number };
+    };
+    const list: RemotePointerUi[] = [];
+    for (const [sid, st] of this.remotePointerBySession) {
+      if (!st.visible) {
+        continue;
+      }
+      const local = g.graphToLocal(st.gx, st.gy);
+      const client = g.localToClient(local.x, local.y);
+      list.push({
+        sessionId: sid,
+        displayName: st.displayName?.trim() || sid.slice(0, 8),
+        px: client.x - wr.left,
+        py: client.y - wr.top,
+        color: collabColorForSession(sid),
+        selectionSummary: this.formatRemoteSelectionSummary(st.selectedIds),
+      });
+    }
+    this.remotePointerList = list;
+  }
+
+  private formatRemoteSelectionSummary(ids: string[]): string {
+    if (!ids.length || !this.graph) {
+      return '';
+    }
+    const labels: string[] = [];
+    for (const id of ids.slice(0, 4)) {
+      const cell = this.graph.getCellById(id);
+      if (!cell) {
+        labels.push(id);
+        continue;
+      }
+      if (cell.isNode()) {
+        const d = cell.getData() as PoliticaNodoCellData | undefined;
+        labels.push(d?.nombre?.trim() || id);
+      } else {
+        labels.push('Conexión');
+      }
+    }
+    let s = labels.join(', ');
+    if (ids.length > 4) {
+      s += ` +${ids.length - 4}`;
+    }
+    return s.length > 48 ? `${s.slice(0, 45)}…` : s;
+  }
+
+  private applyRemoteHighlights(sessionId: string, ids: string[], color: string): void {
+    this.clearRemoteHighlights(sessionId);
+    if (!this.graph || !ids.length) {
+      return;
+    }
+    const acc: HTMLElement[] = [];
+    for (const id of ids) {
+      const cell = this.graph.getCellById(id);
+      if (!cell) {
+        continue;
+      }
+      const view = this.graph.findViewByCell(cell);
+      const el = view?.container as HTMLElement | undefined;
+      if (el) {
+        el.dataset['dpRemoteHl'] = '1';
+        el.style.filter = `drop-shadow(0 0 5px ${color})`;
+        el.style.opacity = '0.95';
+        acc.push(el);
+      }
+    }
+    this.remoteHighlightEls.set(sessionId, acc);
+  }
+
+  private clearRemoteHighlights(sessionId: string): void {
+    const els = this.remoteHighlightEls.get(sessionId);
+    if (els) {
+      for (const el of els) {
+        delete el.dataset['dpRemoteHl'];
+        el.style.filter = '';
+        el.style.opacity = '';
+      }
+    }
+    this.remoteHighlightEls.delete(sessionId);
+  }
+
+  private clearAllRemotePointerUi(): void {
+    for (const sid of [...this.remoteHighlightEls.keys()]) {
+      this.clearRemoteHighlights(sid);
+    }
+    this.remotePointerBySession.clear();
+    this.remotePointerList = [];
+  }
+
+  private refreshRemoteHighlightsAfterGraphChange(): void {
+    for (const sid of [...this.remoteHighlightEls.keys()]) {
+      this.clearRemoteHighlights(sid);
+    }
+    for (const [sid, st] of this.remotePointerBySession) {
+      if (st.visible && st.selectedIds.length) {
+        this.applyRemoteHighlights(sid, st.selectedIds, collabColorForSession(sid));
+      }
+    }
+    this.rebuildRemotePointerList();
   }
 
   private msg(err: unknown): string {

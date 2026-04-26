@@ -120,6 +120,20 @@
   box-shadow: 0 0 0 1px #c7d2fe inset;
 }
 
+.dp-graph-toolbox-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  background: #f8fafc;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+}
+
+.dp-graph-toolbox-btn:disabled:hover {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
 .dp-graph-toolbox-icon {
   width: 22px;
   height: 22px;
@@ -173,6 +187,64 @@
 .dp-graph-tool:hover {
   border-color: #a5b4fc;
   background: #eef2ff;
+}
+
+.dp-graph-canvas-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.dp-graph-remote-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.dp-graph-remote-cursor {
+  position: absolute;
+  margin: 0;
+  pointer-events: none;
+}
+
+.dp-graph-remote-cursor-dot {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow:
+    0 0 0 1px rgb(15 23 42 / 35%),
+    0 2px 6px rgb(15 23 42 / 20%);
+}
+
+.dp-graph-remote-cursor-card {
+  position: absolute;
+  left: 14px;
+  top: 8px;
+  max-width: 220px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  border: 2px solid;
+  background: rgb(255 255 255 / 95%);
+  font-size: 0.72rem;
+  line-height: 1.25;
+  box-shadow: 0 4px 12px rgb(15 23 42 / 12%);
+}
+
+.dp-graph-remote-cursor-name {
+  display: block;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.dp-graph-remote-cursor-sel {
+  display: block;
+  margin-top: 0.1rem;
+  font-weight: 500;
+  color: #475569;
 }
 
 .dp-graph-host {

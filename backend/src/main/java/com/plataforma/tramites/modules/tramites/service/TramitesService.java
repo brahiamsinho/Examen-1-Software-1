@@ -1,5 +1,9 @@
 package com.plataforma.tramites.modules.tramites.service;
 
+import com.plataforma.tramites.modules.politicas.document.PoliticaNegocioDocument;
+import com.plataforma.tramites.modules.politicas.repository.PoliticaNegocioRepository;
+import com.plataforma.tramites.modules.politicas.support.PoliticaNodoInicialResolver;
+import com.plataforma.tramites.modules.politicas.support.PoliticaNodoInicialResolver.NodoInicioPolitica;
 import com.plataforma.tramites.modules.tramites.document.RecorridoTramiteDocument;
 import com.plataforma.tramites.modules.tramites.document.TramiteDocument;
 import com.plataforma.tramites.modules.tramites.dto.RecorridoTramiteRequest;
@@ -12,12 +16,14 @@ import com.plataforma.tramites.modules.tramites.repository.TramiteRepository;
 import com.plataforma.tramites.shared.dto.ModuleStatusResponse;
 import com.plataforma.tramites.shared.exception.ApiException;
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -37,10 +43,21 @@ public class TramitesService {
 
     private final TramiteRepository tramiteRepository;
     private final RecorridoTramiteRepository recorridoTramiteRepository;
+    private final PoliticaNegocioRepository politicaNegocioRepository;
+    private final PoliticaNodoInicialResolver politicaNodoInicialResolver;
+    private final String intakeNodeIdConfig;
 
-    public TramitesService(TramiteRepository tramiteRepository, RecorridoTramiteRepository recorridoTramiteRepository) {
+    public TramitesService(
+            TramiteRepository tramiteRepository,
+            RecorridoTramiteRepository recorridoTramiteRepository,
+            PoliticaNegocioRepository politicaNegocioRepository,
+            PoliticaNodoInicialResolver politicaNodoInicialResolver,
+            @Value("${app.workflow.intake-node-id:ATENCION_CLIENTE}") String intakeNodeIdConfig) {
         this.tramiteRepository = tramiteRepository;
         this.recorridoTramiteRepository = recorridoTramiteRepository;
+        this.politicaNegocioRepository = politicaNegocioRepository;
+        this.politicaNodoInicialResolver = politicaNodoInicialResolver;
+        this.intakeNodeIdConfig = intakeNodeIdConfig != null ? intakeNodeIdConfig.trim() : "ATENCION_CLIENTE";
     }
 
     public ModuleStatusResponse moduleStatus() {
@@ -51,8 +68,55 @@ public class TramitesService {
         return tramiteRepository.findAllByOrderByFechaRegistroDesc(pageable).map(this::toResponse);
     }
 
+    public Page<TramiteResponse> listarSinPolitica(Pageable pageable) {
+        return tramiteRepository.findByPoliticaIdIsNullOrderByFechaRegistroDesc(pageable).map(this::toResponse);
+    }
+
     public TramiteResponse obtener(String id) {
         return toResponse(buscar(id));
+    }
+
+    /**
+     * Asigna la política de negocio a un trámite que ingresó sin política y está en el nodo de atención al cliente;
+     * ubica el expediente en el nodo inicial de esa política ({@code esInicial=true}).
+     */
+    public TramiteResponse asignarPoliticaDesdeIngreso(String tramiteId, String politicaIdHex, String usuarioPlanificadorHex) {
+        TramiteDocument t = buscar(tramiteId);
+        if (t.getPoliticaId() != null) {
+            throw new ApiException(HttpStatus.CONFLICT, "El trámite ya tiene política asignada.");
+        }
+        if (t.getNodoActualId() == null || !intakeNodeIdConfig.equals(t.getNodoActualId())) {
+            throw new ApiException(
+                    HttpStatus.BAD_REQUEST,
+                    "El trámite no está en el nodo de ingreso esperado (" + intakeNodeIdConfig + ").");
+        }
+        ObjectId pid = parseObjectId(politicaIdHex, "politicaId");
+        PoliticaNegocioDocument politica = politicaNegocioRepository
+                .findById(pid)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Política no encontrada."));
+        NodoInicioPolitica inicio = politicaNodoInicialResolver.resolver(politica);
+        t.setPoliticaId(politica.getId());
+        t.setNodoActualId(inicio.idNodo());
+        t.setAreaActualId(inicio.areaId());
+        t.setParaleloSplitNodoId(null);
+        t.setParaleloJoinNodoId(null);
+        t.setParaleloRamasPendientes(new ArrayList<>());
+        t.setParaleloRamasAprobadas(new ArrayList<>());
+        tramiteRepository.save(t);
+
+        RecorridoTramiteRequest rec = new RecorridoTramiteRequest();
+        rec.setNodoId(inicio.idNodo());
+        if (inicio.areaId() != null) {
+            rec.setAreaId(inicio.areaId().toHexString());
+        }
+        if (usuarioPlanificadorHex != null && !usuarioPlanificadorHex.isBlank()) {
+            rec.setUsuarioId(usuarioPlanificadorHex);
+        }
+        rec.setEstado("ACTIVO");
+        String nombrePolitica = politica.getNombre() != null ? politica.getNombre() : "(sin nombre)";
+        rec.setObservacion("Planificador asignó política «" + nombrePolitica + "» y ubicación en nodo inicial del flujo.");
+        registrarRecorrido(tramiteId, rec);
+        return toResponse(buscar(tramiteId));
     }
 
     public TramiteResponse crear(TramiteCreateRequest body) {
@@ -74,6 +138,36 @@ public class TramitesService {
         t.setNumeroTurno(turno);
         t.setPoliticaId(parseObjectId(body.getPoliticaId(), "politicaId"));
         t.setClienteId(parseObjectId(body.getClienteId(), "clienteId"));
+        return toResponse(tramiteRepository.save(t));
+    }
+
+    /**
+     * Alta inicial desde portal cliente sin política asignada todavía.
+     * El planificador define la política después del triaje en atención al cliente.
+     */
+    public TramiteResponse crearIngresoCliente(
+            String clienteId,
+            String asunto,
+            String descripcion,
+            String prioridad,
+            String nodoIngresoId,
+            String areaIngresoId) {
+        validarPrioridad(prioridad);
+        String codigo = generarCodigoUnico();
+        int turno = siguienteNumeroTurno();
+        TramiteDocument t = new TramiteDocument();
+        t.setCodigo(codigo);
+        t.setAsunto(asunto.trim());
+        t.setDescripcion(descripcion.trim());
+        t.setFechaRegistro(Instant.now());
+        t.setPrioridad(prioridad.trim());
+        t.setEstado("EN_PROCESO");
+        t.setNumeroTurno(turno);
+        t.setClienteId(parseObjectId(clienteId, "clienteId"));
+        t.setNodoActualId(nodoIngresoId);
+        if (areaIngresoId != null && !areaIngresoId.isBlank()) {
+            t.setAreaActualId(parseObjectId(areaIngresoId, "areaActualId"));
+        }
         return toResponse(tramiteRepository.save(t));
     }
 
@@ -184,7 +278,7 @@ public class TramitesService {
                 t.getPrioridad(),
                 t.getEstado(),
                 t.getNumeroTurno(),
-                t.getPoliticaId().toHexString(),
+                t.getPoliticaId() != null ? t.getPoliticaId().toHexString() : null,
                 t.getClienteId().toHexString(),
                 t.getNodoActualId(),
                 t.getAreaActualId() != null ? t.getAreaActualId().toHexString() : null);

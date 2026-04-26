@@ -5,6 +5,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Colección {@code tramites} (script.db).
@@ -25,6 +27,13 @@ public class TramiteDocument {
     private ObjectId clienteId;
     private String nodoActualId;
     private ObjectId areaActualId;
+
+    /** Nodo desde el cual se abrió un split {@code PARALELO} y aún no se alcanzó el join. */
+    private String paraleloSplitNodoId;
+
+    private List<String> paraleloRamasPendientes = new ArrayList<>();
+    private List<String> paraleloRamasAprobadas = new ArrayList<>();
+    private String paraleloJoinNodoId;
 
     public ObjectId getId() {
         return id;
@@ -120,5 +129,39 @@ public class TramiteDocument {
 
     public void setAreaActualId(ObjectId areaActualId) {
         this.areaActualId = areaActualId;
+    }
+
+    public String getParaleloSplitNodoId() {
+        return paraleloSplitNodoId;
+    }
+
+    public void setParaleloSplitNodoId(String paraleloSplitNodoId) {
+        this.paraleloSplitNodoId = paraleloSplitNodoId;
+    }
+
+    public List<String> getParaleloRamasPendientes() {
+        return paraleloRamasPendientes;
+    }
+
+    public void setParaleloRamasPendientes(List<String> paraleloRamasPendientes) {
+        this.paraleloRamasPendientes =
+                paraleloRamasPendientes != null ? paraleloRamasPendientes : new ArrayList<>();
+    }
+
+    public List<String> getParaleloRamasAprobadas() {
+        return paraleloRamasAprobadas;
+    }
+
+    public void setParaleloRamasAprobadas(List<String> paraleloRamasAprobadas) {
+        this.paraleloRamasAprobadas =
+                paraleloRamasAprobadas != null ? paraleloRamasAprobadas : new ArrayList<>();
+    }
+
+    public String getParaleloJoinNodoId() {
+        return paraleloJoinNodoId;
+    }
+
+    public void setParaleloJoinNodoId(String paraleloJoinNodoId) {
+        this.paraleloJoinNodoId = paraleloJoinNodoId;
     }
 }

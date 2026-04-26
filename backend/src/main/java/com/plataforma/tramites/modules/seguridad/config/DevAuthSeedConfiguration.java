@@ -55,6 +55,10 @@ public class DevAuthSeedConfiguration {
             upsertAreaSeed(areaRepository, "Atención al cliente", "Primer contacto y orientación al usuario.");
             upsertAreaSeed(areaRepository, "Departamento legal", "Revisión jurídica y documentación contractual.");
             upsertAreaSeed(areaRepository, "Recursos humanos", "Gestión de personal y expedientes internos.");
+            upsertAreaSeed(
+                    areaRepository,
+                    "Tecnología de la información",
+                    "Infraestructura, aplicaciones y soporte técnico interno.");
 
             String hashDemo = passwordEncoder.encode(PASSWORD_DEMO);
             upsertUsuario(
@@ -84,11 +88,11 @@ public class DevAuthSeedConfiguration {
             upsertUsuario(
                     usuarioRepository,
                     rolRepository,
-                    "area@tramites.local",
-                    "Responsable",
-                    "Area",
+                    "planificador@tramites.local",
+                    "Planificador",
+                    "Tramites",
                     hashDemo,
-                    PortalRol.RESPONSABLE_AREA);
+                    PortalRol.PLANIFICADOR);
             upsertUsuario(
                     usuarioRepository,
                     rolRepository,
@@ -98,28 +102,113 @@ public class DevAuthSeedConfiguration {
                     hashDemo,
                     PortalRol.CLIENTE);
 
-            areaRepository
-                    .findByNombreIgnoreCase("Departamento legal")
-                    .ifPresent(legal -> {
-                        usuarioRepository.findByCorreo("area@tramites.local").ifPresent(u -> {
-                            u.setAreaId(legal.getId());
-                            usuarioRepository.save(u);
-                            log.warn("Semilla auth-dev: area@tramites.local asignado al área «{}».", legal.getNombre());
-                        });
-                        upsertUsuario(
-                                usuarioRepository,
-                                rolRepository,
-                                "legal@tramites.local",
-                                "Encargado",
-                                "Legal",
-                                hashDemo,
-                                PortalRol.RESPONSABLE_AREA);
-                        usuarioRepository.findByCorreo("legal@tramites.local").ifPresent(u -> {
-                            u.setAreaId(legal.getId());
-                            usuarioRepository.save(u);
-                        });
-                    });
+            // Responsables de área (demo): credenciales demo123; cada correo queda ligado a su departamento.
+            upsertResponsableDeArea(
+                    usuarioRepository,
+                    rolRepository,
+                    areaRepository,
+                    hashDemo,
+                    "area@tramites.local",
+                    "Responsable",
+                    "General",
+                    "Departamento legal");
+            upsertResponsableDeArea(
+                    usuarioRepository,
+                    rolRepository,
+                    areaRepository,
+                    hashDemo,
+                    "legal@tramites.local",
+                    "Encargado",
+                    "Legal",
+                    "Departamento legal");
+            upsertResponsableDeArea(
+                    usuarioRepository,
+                    rolRepository,
+                    areaRepository,
+                    hashDemo,
+                    "legal2@tramites.local",
+                    "Encargada",
+                    "LegalDos",
+                    "Departamento legal");
+            upsertResponsableDeArea(
+                    usuarioRepository,
+                    rolRepository,
+                    areaRepository,
+                    hashDemo,
+                    "rrhh@tramites.local",
+                    "Encargada",
+                    "RecursosHumanos",
+                    "Recursos humanos");
+            upsertResponsableDeArea(
+                    usuarioRepository,
+                    rolRepository,
+                    areaRepository,
+                    hashDemo,
+                    "ti@tramites.local",
+                    "Encargado",
+                    "Sistemas",
+                    "Tecnología de la información");
+            upsertResponsableDeArea(
+                    usuarioRepository,
+                    rolRepository,
+                    areaRepository,
+                    hashDemo,
+                    "ti2@tramites.local",
+                    "Encargada",
+                    "Infraestructura",
+                    "Tecnología de la información");
+            upsertResponsableDeArea(
+                    usuarioRepository,
+                    rolRepository,
+                    areaRepository,
+                    hashDemo,
+                    "atencion@tramites.local",
+                    "Coordinadora",
+                    "MesaEntrada",
+                    "Atención al cliente");
         };
+    }
+
+    /**
+     * Crea o actualiza un usuario con rol {@link PortalRol#RESPONSABLE_AREA} y le asigna {@code areaId} según el nombre
+     * del área (búsqueda case-insensitive).
+     */
+    private static void upsertResponsableDeArea(
+            UsuarioRepository usuarioRepository,
+            RolRepository rolRepository,
+            AreaRepository areaRepository,
+            String hashDemo,
+            String correo,
+            String nombres,
+            String apellidos,
+            String nombreArea) {
+        areaRepository
+                .findByNombreIgnoreCase(nombreArea)
+                .ifPresentOrElse(
+                        area -> {
+                            upsertUsuario(
+                                    usuarioRepository,
+                                    rolRepository,
+                                    correo,
+                                    nombres,
+                                    apellidos,
+                                    hashDemo,
+                                    PortalRol.RESPONSABLE_AREA);
+                            usuarioRepository
+                                    .findByCorreo(correo)
+                                    .ifPresent(u -> {
+                                        u.setAreaId(area.getId());
+                                        usuarioRepository.save(u);
+                                    });
+                            log.warn(
+                                    "Semilla auth-dev: responsable de área '{}' asignado a «{}».",
+                                    correo,
+                                    area.getNombre());
+                        },
+                        () -> log.warn(
+                                "Semilla auth-dev: área «{}» no encontrada; no se asignó responsable '{}'.",
+                                nombreArea,
+                                correo));
     }
 
     private static void upsertAreaSeed(AreaRepository areaRepository, String nombre, String descripcion) {

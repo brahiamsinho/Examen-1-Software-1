@@ -33,6 +33,12 @@ export const routes: Routes = [
           import('./features/auth/portal-login.component').then((m) => m.PortalLoginComponent),
         data: { portalRol: 'RESPONSABLE_AREA', portalTitulo: 'Responsable de área' },
       },
+      {
+        path: 'planificador',
+        loadComponent: () =>
+          import('./features/auth/portal-login.component').then((m) => m.PortalLoginComponent),
+        data: { portalRol: 'PLANIFICADOR', portalTitulo: 'Planificador de trámites' },
+      },
     ],
   },
   {
@@ -54,6 +60,12 @@ export const routes: Routes = [
       import('./features/responsable-area/responsable-area.routes').then((m) => m.responsableAreaRoutes),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['RESPONSABLE_AREA'] },
+  },
+  {
+    path: 'planificador',
+    loadChildren: () => import('./features/planificador/planificador.routes').then((m) => m.planificadorRoutes),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['PLANIFICADOR'] },
   },
   {
     path: '',

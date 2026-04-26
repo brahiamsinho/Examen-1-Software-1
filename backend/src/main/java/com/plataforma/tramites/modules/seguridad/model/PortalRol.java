@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 public enum PortalRol {
     ADMINISTRADOR("ADMINISTRADOR", "Administrador"),
     DISENADOR_POLITICAS("DISENADOR_POLITICAS", "Diseñador de políticas de negocio"),
+    PLANIFICADOR("PLANIFICADOR", "Planificador de trámites"),
     RESPONSABLE_AREA("RESPONSABLE_AREA", "Responsable de área"),
     CLIENTE("CLIENTE", "Cliente");
 

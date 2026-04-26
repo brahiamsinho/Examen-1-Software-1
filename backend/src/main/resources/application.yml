@@ -5,6 +5,11 @@ spring:
   application:
     name: tramites-backend
 
+  servlet:
+    multipart:
+      max-file-size: ${APP_UPLOAD_MAX_FILE_SIZE:25MB}
+      max-request-size: ${APP_UPLOAD_MAX_REQUEST_SIZE:30MB}
+
   data:
     mongodb:
       # Colecciones alineadas con script.db / init-mongo.js. El nombre de BD lo define MONGO_DB en Docker (p. ej. tramitesdb);
@@ -43,3 +48,9 @@ app:
     auth-seed-enabled: ${APP_DEV_AUTH_SEED_ENABLED:true}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  workflow:
+    intake-node-id: ${APP_WORKFLOW_INTAKE_NODE_ID:ATENCION_CLIENTE}
+    intake-node-name: ${APP_WORKFLOW_INTAKE_NODE_NAME:Atencion al cliente}
+    intake-area-id: ${APP_WORKFLOW_INTAKE_AREA_ID:}
+  storage:
+    upload-dir: ${APP_UPLOAD_DIR:./data/uploads}

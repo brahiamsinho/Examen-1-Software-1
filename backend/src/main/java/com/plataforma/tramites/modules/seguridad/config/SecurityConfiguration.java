@@ -50,6 +50,10 @@ public class SecurityConfiguration {
                                         .permitAll()
                                         .requestMatchers("/api/admin/**")
                                         .hasRole("ADMINISTRADOR")
+                                        .requestMatchers("/api/cliente/**")
+                                        .hasRole("CLIENTE")
+                                        .requestMatchers("/api/planificador/**")
+                                        .hasRole("PLANIFICADOR")
                                         .anyRequest()
                                         .authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

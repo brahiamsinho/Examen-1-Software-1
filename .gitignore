@@ -62,3 +62,5 @@ yarn-error.log*
 
 # ─── Datos locales / artefactos ─────────────────────────────
 *.local.db
+incidentes_emergencias_v1.pt
+backend/data/uploads/

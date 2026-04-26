@@ -35,6 +35,7 @@ final _router = GoRouter(
       path: '/',
       builder: (context, state) => HomeScreen(
         nombres: _nombres.isEmpty ? 'Cliente' : _nombres,
+        accessToken: _token!,
         onLogout: () {
           _token = null;
           _nombres = '';
