@@ -6,6 +6,27 @@ import type {
   PoliticaNodoDto,
 } from '@features/disenador-politicas/models/politica-negocio.model';
 
+function asStringId(value: unknown): string | null {
+  if (value == null) {
+    return null;
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'object') {
+    const rec = value as Record<string, unknown>;
+    const oid = rec['$oid'];
+    if (typeof oid === 'string') {
+      return oid;
+    }
+    const hex = rec['hexString'];
+    if (typeof hex === 'string') {
+      return hex;
+    }
+  }
+  return String(value);
+}
+
 /** Datos de dominio embebidos en cada celda X6 (alineado con `politicas_negocio.nodos` en script.db). */
 export interface PoliticaNodoCellData {
   idNodo: string;
@@ -131,8 +152,12 @@ function politicaNodoToCell(n: PoliticaNodoDto, x: number, y: number): Node.Prop
     condicion: n.condicion ?? null,
     esInicial: n.esInicial,
     esFinal: n.esFinal,
-    areaId: n.areaId ?? null,
-    asignacionesResponsable: [...(n.asignacionesResponsable ?? [])],
+    areaId: asStringId(n.areaId),
+    asignacionesResponsable: (n.asignacionesResponsable ?? []).map((a) => ({
+      ...a,
+      usuarioId: asStringId(a.usuarioId) ?? '',
+      areaId: asStringId(a.areaId) ?? '',
+    })),
   };
   const body: Record<string, string | number> = {
     stroke: strokeForTipo(n.tipoNodo),
@@ -237,8 +262,14 @@ function readNodeData(node: Node): PoliticaNodoCellData {
     condicion: d?.condicion ?? null,
     esInicial: Boolean(d?.esInicial),
     esFinal: Boolean(d?.esFinal),
-    areaId: d?.areaId ?? null,
-    asignacionesResponsable: Array.isArray(d?.asignacionesResponsable) ? d!.asignacionesResponsable! : [],
+    areaId: asStringId(d?.areaId),
+    asignacionesResponsable: Array.isArray(d?.asignacionesResponsable)
+      ? d!.asignacionesResponsable!.map((a) => ({
+          ...a,
+          usuarioId: asStringId(a?.usuarioId) ?? '',
+          areaId: asStringId(a?.areaId) ?? '',
+        }))
+      : [],
   };
 }
 

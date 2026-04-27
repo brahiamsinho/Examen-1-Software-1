@@ -1,25 +1,220 @@
+/* Shell planificador: autónomo (no depende del SCSS del diseñador) + acento sky alineado a --color-primary */
 .pla-app.modulo-app {
   display: grid;
   grid-template-columns: 240px 1fr;
   min-height: 100vh;
-  font-family: 'Fira Sans', 'Lato', system-ui, sans-serif;
-  color: #020617;
-  background: #f8fafc;
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background: var(--color-background);
 }
 
 .pla-sidebar.modulo-sidebar {
   display: flex;
   flex-direction: column;
   padding: 1.25rem 0.9rem;
-  background: linear-gradient(180deg, #1e3a8a 0%, #172554 100%);
+  min-height: 0;
+  background: linear-gradient(180deg, #0c4a6e 0%, #082f49 100%);
   color: #e2e8f0;
-  border-right: 1px solid #2563eb;
+  border-right: 1px solid #0369a1;
+}
+
+.pla-sidebar .modulo-sidebar-brand {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0 0.5rem 1.25rem;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.28);
+  margin-bottom: 1rem;
+}
+
+.pla-sidebar .modulo-sidebar-logo {
+  color: #7dd3fc;
+  display: flex;
+}
+
+.pla-sidebar .modulo-sidebar-kicker {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #bae6fd;
+  font-weight: 700;
+}
+
+.pla-sidebar .modulo-sidebar-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.pla-sidebar .modulo-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.pla-sidebar .modulo-nav-item {
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  color: #e0f2fe;
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pla-sidebar .modulo-nav-item {
+    transition: none;
+  }
+}
+
+.pla-sidebar .modulo-nav-item:hover {
+  background: rgba(14, 165, 233, 0.22);
+  color: #fff;
+  text-decoration: none;
+}
+
+.pla-sidebar .modulo-nav-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #f8fafc, 0 0 0 4px #0369a1;
 }
 
 .pla-sidebar .modulo-nav-item.is-active {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+  border-color: rgba(125, 211, 252, 0.35);
+}
+
+.pla-sidebar .modulo-sidebar-footer {
+  margin-top: auto;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #bae6fd;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.pla-sidebar .modulo-sidebar-footer:hover {
+  background: rgba(3, 105, 161, 0.35);
+  color: #f0f9ff;
+  text-decoration: none;
+}
+
+.pla-sidebar .modulo-sidebar-footer:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #f8fafc, 0 0 0 4px #0369a1;
+}
+
+.pla-app .modulo-main-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--color-background);
 }
 
 .pla-topbar.modulo-topbar {
-  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(8px);
+}
+
+.pla-topbar .modulo-topbar-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-ink-900);
+}
+
+.pla-topbar .modulo-topbar-sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-ink-500);
+}
+
+.pla-app .modulo-btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 0.5rem 1rem;
+  min-height: 44px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.pla-app .modulo-btn-ghost {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  border: 1px solid #bae6fd;
+}
+
+.pla-app .modulo-btn-ghost:hover {
+  background: #bae6fd;
+  color: #082f49;
+}
+
+.pla-app .modulo-btn-ghost:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.pla-app .modulo-content {
+  flex: 1;
+  padding: 1.25rem 1.5rem 2rem;
+  max-width: min(1200px, 100%);
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .pla-app.modulo-app {
+    grid-template-columns: 1fr;
+  }
+
+  .pla-sidebar.modulo-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .pla-sidebar .modulo-sidebar-brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 0 0;
+    margin-bottom: 0;
+    border-bottom: none;
+  }
+
+  .pla-sidebar .modulo-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex: 1 1 100%;
+  }
+
+  .pla-sidebar .modulo-sidebar-footer {
+    margin-top: 0;
+    width: 100%;
+  }
 }

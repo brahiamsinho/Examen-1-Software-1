@@ -97,6 +97,12 @@ Si `APP_DEV_AUTH_SEED_ENABLED=true` y Mongo está vacío en roles, Spring insert
 
 API: `POST /backend/api/auth/login` (vía Nginx) cuerpo JSON `{ "correo", "contrasena", "portalRol" }`. Respuesta incluye `accessToken` (Bearer) para llamadas autenticadas.
 
+**Cliente (seguimiento):** con rol `CLIENTE`, `GET /api/cliente/tramites` (paginado) y `GET /api/cliente/tramites/{id}` devuelven trámite + recorridos solo si el expediente pertenece al usuario del token.
+
+**Responsable de área (flujo):** `GET /api/tramites/{id}/flujo/salidas`, `POST .../flujo/avanzar` (cuerpo `{ "idConexion", "observacion?" }`) para avanzar sin bifurcación PARALELO múltiple, y `POST .../flujo/aprobar-rama-paralela` para ramas paralelas. Solo **ADMINISTRADOR** o **RESPONSABLE_AREA** cuyo `areaId` coincide con el nodo correspondiente de la política.
+
+**API genérica `/api/tramites` (staff):** `GET /api/tramites` y `GET /api/tramites/{id}/cola/fifo` quedan acotados por rol: administrador ve todo; planificador solo trámites **sin** `politicaId`; responsable solo trámites cuyo `areaActualId` coincide con su área (la cola FIFO respeta el mismo filtro). `GET /api/tramites/{id}`, `GET .../recorridos` y `POST .../recorridos` aplican la misma idea de visibilidad; el alta de recorrido por `POST` exige las mismas reglas de área que el flujo (sin política asignada, solo admin). El portal **cliente** sigue usando `/api/cliente/tramites/**` para listado y detalle.
+
 ---
 
 ## Comandos útiles

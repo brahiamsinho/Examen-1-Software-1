@@ -83,6 +83,7 @@
             <th>Prioridad</th>
             <th>Turno</th>
             <th>Registro</th>
+            <th>Flujo</th>
           </tr>
         </thead>
         <tbody>
@@ -94,10 +95,27 @@
               <td>{{ t.prioridad }}</td>
               <td>{{ t.numeroTurno }}</td>
               <td>{{ t.fechaRegistro | date: 'short' }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="admin-secondary-btn ra-flujo-btn"
+                  (click)="openFlujo(t)"
+                  [disabled]="!puedeOperarFlujo(t)"
+                  [title]="
+                    !t.politicaId
+                      ? 'Sin política asignada todavía'
+                      : puedeOperarFlujo(t)
+                        ? 'Ver salidas y avanzar etapa'
+                        : 'Solo el área del nodo actual o un administrador'
+                  "
+                >
+                  Flujo
+                </button>
+              </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6">{{ loading ? 'Cargando…' : 'Sin trámites en esta vista.' }}</td>
+              <td colspan="7">{{ loading ? 'Cargando…' : 'Sin trámites en esta vista.' }}</td>
             </tr>
           }
         </tbody>
@@ -126,3 +144,85 @@
     }
   }
 </section>
+
+@if (flujoTramite) {
+  <div class="ra-flujo-backdrop" (click)="closeFlujo()" role="presentation"></div>
+  <div
+    class="ra-flujo-dialog"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="'ra-flujo-title'"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="ra-flujo-head">
+      <h3 id="ra-flujo-title" class="ra-flujo-title">Flujo — {{ flujoTramite.codigo }}</h3>
+      <button type="button" class="ra-flujo-close" (click)="closeFlujo()" aria-label="Cerrar">×</button>
+    </div>
+    <p class="ra-flujo-meta">
+      Nodo actual: <code>{{ flujoTramite.nodoActualId ?? '—' }}</code> · Área actual:
+      <code>{{ flujoTramite.areaActualId ?? '—' }}</code>
+    </p>
+    <label class="ra-flujo-field">
+      <span>Observación (opcional)</span>
+      <input type="text" [(ngModel)]="flujoObs" name="flujo_obs" maxlength="500" />
+    </label>
+    @if (flujoError) {
+      <p class="admin-alert" role="alert">{{ flujoError }}</p>
+    }
+    @if (loadingFlujo) {
+      <p class="ra-inline-status" role="status">Cargando salidas…</p>
+    } @else if (salidas.length === 0) {
+      <p class="ra-flujo-empty">No hay salidas desde el nodo actual (puede ser nodo final o sin conexiones).</p>
+    } @else if (esParaleloMulti()) {
+      <p class="ra-flujo-hint">
+        Bifurcación <strong>PARALELO</strong>: cada departamento debe dar el visto bueno a su rama. Cuando todas
+        aprueban, el trámite pasa al nodo unión común.
+      </p>
+      <ul class="ra-flujo-list">
+        @for (s of salidasParalelas(); track s.idConexion) {
+          <li class="ra-flujo-item">
+            <div>
+              <strong>Rama → {{ s.destinoNodoId }}</strong>
+              @if (s.condicion) {
+                <span class="ra-flujo-cond">Condición (referencia): {{ s.condicion }}</span>
+              }
+            </div>
+            <button
+              type="button"
+              class="admin-primary-btn"
+              (click)="aprobarParalelo(s.destinoNodoId)"
+              [disabled]="workingKey !== ''"
+            >
+              {{ workingKey === 'p:' + s.destinoNodoId ? 'Registrando…' : 'Visto bueno en esta rama' }}
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="ra-flujo-hint">
+        Elegí la salida. Las <strong>condiciones</strong> sobre el trámite aún no se evalúan solas: actuá según la
+        política de negocio.
+      </p>
+      <ul class="ra-flujo-list">
+        @for (s of salidas; track s.idConexion) {
+          <li class="ra-flujo-item">
+            <div>
+              <strong>{{ s.tipoFlujo || 'SECUENCIAL' }}</strong> → <code>{{ s.destinoNodoId }}</code>
+              @if (s.condicion) {
+                <span class="ra-flujo-cond">Condición: {{ s.condicion }}</span>
+              }
+            </div>
+            <button
+              type="button"
+              class="admin-primary-btn"
+              (click)="avanzar(s)"
+              [disabled]="workingKey !== ''"
+            >
+              {{ workingKey === 'a:' + s.idConexion ? 'Avanzando…' : 'Avanzar por esta salida' }}
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+}

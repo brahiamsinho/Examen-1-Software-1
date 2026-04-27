@@ -147,6 +147,27 @@ export function buildDefaultPoliticaUpsert(nombre: string, descripcion: string, 
 }
 
 export function politicaDtoToUpsertBody(p: PoliticaNegocioDto): PoliticaUpsertBody {
+  const asStringId = (value: unknown): string | null => {
+    if (value == null) {
+      return null;
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (typeof value === 'object') {
+      const rec = value as Record<string, unknown>;
+      const oid = rec['$oid'];
+      if (typeof oid === 'string') {
+        return oid;
+      }
+      const hex = rec['hexString'];
+      if (typeof hex === 'string') {
+        return hex;
+      }
+    }
+    return String(value);
+  };
+
   return {
     nombre: p.nombre,
     descripcion: p.descripcion,
@@ -161,10 +182,10 @@ export function politicaDtoToUpsertBody(p: PoliticaNegocioDto): PoliticaUpsertBo
       condicion: n.condicion ?? null,
       esInicial: n.esInicial,
       esFinal: n.esFinal,
-      areaId: n.areaId ?? null,
+      areaId: asStringId(n.areaId),
       asignacionesResponsable: (n.asignacionesResponsable ?? []).map((a) => ({
-        usuarioId: a.usuarioId,
-        areaId: a.areaId,
+        usuarioId: asStringId(a.usuarioId) ?? '',
+        areaId: asStringId(a.areaId) ?? '',
         fechaAsignacion: a.fechaAsignacion,
         estado: a.estado,
       })),

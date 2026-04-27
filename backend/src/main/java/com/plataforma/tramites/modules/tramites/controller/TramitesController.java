@@ -78,6 +78,6 @@ public class TramitesController {
     @ResponseStatus(HttpStatus.CREATED)
     public RecorridoTramiteResponse registrarRecorrido(
             @PathVariable String id, @Valid @RequestBody RecorridoTramiteRequest body) {
-        return tramitesService.registrarRecorrido(id, body);
+        return tramitesService.registrarRecorridoDesdeApi(id, body);
     }
 }

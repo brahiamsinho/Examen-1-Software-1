@@ -2,6 +2,8 @@ package com.plataforma.tramites.modules.cliente.service;
 
 import com.plataforma.tramites.modules.cliente.dto.ClienteInicioTramiteJsonRequest;
 import com.plataforma.tramites.modules.cliente.dto.ClienteInicioTramiteResponse;
+import com.plataforma.tramites.modules.cliente.dto.ClienteTramiteDetalleResponse;
+import com.plataforma.tramites.modules.tramites.dto.TramiteResponse;
 import com.plataforma.tramites.modules.documentos.dto.DocumentoTramiteCreateRequest;
 import com.plataforma.tramites.modules.documentos.dto.DocumentoTramiteDto;
 import com.plataforma.tramites.modules.documentos.service.DocumentosService;
@@ -10,6 +12,8 @@ import com.plataforma.tramites.modules.tramites.dto.TramiteResponse;
 import com.plataforma.tramites.modules.tramites.service.TramitesService;
 import com.plataforma.tramites.shared.exception.ApiException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,6 +63,19 @@ public class ClienteTramitesService {
                 body.getTipoArchivo(),
                 body.getRutaArchivo().trim());
         return armarRespuesta(tramite, doc.id(), doc.rutaArchivo());
+    }
+
+    /** Listado paginado de trámites del cliente autenticado. */
+    public Page<TramiteResponse> listarMisTramites(String clienteIdHex, int page, int size) {
+        int p = Math.max(0, page);
+        int s = Math.min(100, Math.max(1, size));
+        return tramitesService.listarPorClienteId(clienteIdHex, PageRequest.of(p, s));
+    }
+
+    /** Detalle y recorridos; falla si el trámite no pertenece al cliente. */
+    public ClienteTramiteDetalleResponse detalleMiTramite(String clienteIdHex, String tramiteIdHex) {
+        TramiteResponse t = tramitesService.obtenerDeCliente(tramiteIdHex, clienteIdHex);
+        return new ClienteTramiteDetalleResponse(t, tramitesService.listarRecorridosInterno(tramiteIdHex));
     }
 
     public ClienteInicioTramiteResponse iniciarConDocumentoMultipart(

@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tramites_cliente/features/cliente/cliente_api.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -106,6 +107,10 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Nuevo trámite'),
         actions: [
+          TextButton(
+            onPressed: () => context.go('/mis-tramites'),
+            child: const Text('Mis trámites', style: TextStyle(color: Colors.white)),
+          ),
           TextButton(
             onPressed: widget.onLogout,
             child: const Text('Salir', style: TextStyle(color: Colors.white)),

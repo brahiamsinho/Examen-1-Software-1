@@ -1,33 +1,229 @@
 .pla-pend {
-  max-width: 1100px;
+  max-width: 1120px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.pla-pend-head {
+  margin-bottom: 1.25rem;
+}
+
+.pla-pend-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
 }
 
 .pla-pend-title {
-  margin: 0 0 0.35rem;
-  font-size: 1.35rem;
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.2rem, 2.5vw, 1.45rem);
+  font-weight: 700;
+  color: var(--color-ink-900);
+  line-height: 1.25;
 }
 
 .pla-pend-lead {
-  margin: 0 0 1rem;
-  color: #475569;
-  line-height: 1.5;
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  max-width: 68ch;
+  font-size: 0.95rem;
 }
 
-.pla-pend-error {
-  color: #b91c1c;
+.pla-pend-lead code {
+  font-size: 0.85em;
+  padding: 0.1em 0.35em;
+  border-radius: 6px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.pla-pend-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
   margin-bottom: 1rem;
 }
 
-.pla-pend-loading,
-.pla-pend-empty {
-  color: #64748b;
+.pla-pend-count {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--color-ink-700);
+}
+
+.pla-pend-count--muted {
+  color: var(--color-ink-500);
+}
+
+.pla-pend-count-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+}
+
+.pla-pend-count-label {
+  font-weight: 600;
+}
+
+.pla-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-ink-700);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.pla-toolbar-btn:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  border-color: #bae6fd;
+  color: var(--color-primary-dark);
+}
+
+.pla-toolbar-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pla-toolbar-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.pla-toolbar-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pla-toolbar-btn {
+    transition: none;
+  }
+}
+
+.pla-pend-banner {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.pla-pend-banner--success {
+  color: #14532d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.pla-pend-banner--error {
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.pla-pend-banner--warn {
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.pla-skeleton {
+  padding: 0.5rem 0;
+}
+
+.pla-skeleton-row {
+  height: 52px;
+  margin-bottom: 0.65rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 40%, #e2e8f0 80%);
+  background-size: 200% 100%;
+  animation: pla-shimmer 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pla-skeleton-row {
+    animation: none;
+    background: #e2e8f0;
+  }
+}
+
+@keyframes pla-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.pla-empty {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border);
+  background: rgba(255, 255, 255, 0.75);
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.pla-empty-icon {
+  color: var(--color-ink-500);
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.pla-empty-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-ink-900);
+}
+
+.pla-empty-text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--color-ink-500);
+  line-height: 1.5;
 }
 
 .pla-table-wrap {
   overflow-x: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .pla-table {
@@ -38,32 +234,123 @@
 
 .pla-table th,
 .pla-table td {
-  padding: 0.65rem 0.75rem;
+  padding: 0.75rem 0.85rem;
   text-align: left;
+  vertical-align: middle;
   border-bottom: 1px solid #f1f5f9;
 }
 
-.pla-table th {
-  background: #f8fafc;
-  font-weight: 600;
+.pla-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f1f5f9;
+  color: var(--color-ink-900);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pla-table tbody tr:hover {
+  background: #fafbff;
+}
+
+.pla-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.pla-code {
+  display: inline-block;
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.pla-cell-main {
+  display: block;
+  max-width: 280px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.pla-mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+  color: var(--color-ink-700);
+  word-break: break-all;
 }
 
 .pla-select {
-  min-width: 220px;
-  max-width: 320px;
-  padding: 0.35rem 0.5rem;
-  border-radius: 6px;
+  min-width: 200px;
+  max-width: min(320px, 100%);
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
   border: 1px solid #cbd5e1;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--color-text);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pla-select:hover {
+  border-color: #94a3b8;
+}
+
+.pla-select:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus);
+}
+
+.pla-td-action {
+  white-space: nowrap;
 }
 
 .pla-btn {
-  padding: 0.4rem 0.85rem;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  min-height: 44px;
+  min-width: 7.5rem;
+  border-radius: var(--radius-sm);
   border: none;
-  background: #1e3a8a;
+  background: var(--color-primary);
   color: #fff;
   cursor: pointer;
-  font-weight: 600;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.pla-btn:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.pla-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pla-btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  .pla-btn {
+    transition: background-color 0.2s ease;
+  }
 }
 
 .pla-btn:disabled {
@@ -71,19 +358,63 @@
   cursor: not-allowed;
 }
 
+.pla-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus), 0 0 0 1px #fff inset;
+}
+
+.pla-btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: pla-spin 0.65s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pla-btn-spinner {
+    animation: none;
+    border-top-color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+@keyframes pla-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .pla-pager {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
+  justify-content: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--color-border);
 }
 
 .pla-pager-btn {
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
-  background: #fff;
+  padding: 0.5rem 1rem;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-ink-700);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
   cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.pla-pager-btn:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  border-color: #bae6fd;
 }
 
 .pla-pager-btn:disabled {
@@ -91,7 +422,78 @@
   cursor: not-allowed;
 }
 
+.pla-pager-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
 .pla-pager-meta {
-  font-size: 0.875rem;
-  color: #64748b;
+  font-size: 0.88rem;
+  color: var(--color-ink-500);
+}
+
+.pla-pager-meta strong {
+  color: var(--color-ink-900);
+}
+
+.pla-pager-sep {
+  margin: 0 0.25rem;
+  opacity: 0.6;
+}
+
+@media (max-width: 960px) {
+  .pla-table thead {
+    display: none;
+  }
+
+  .pla-table tbody tr {
+    display: block;
+    padding: 1rem 0.85rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .pla-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .pla-table td {
+    display: grid;
+    grid-template-columns: minmax(100px, 34%) 1fr;
+    gap: 0.35rem 0.75rem;
+    padding: 0.45rem 0;
+    border-bottom: none;
+    align-items: center;
+  }
+
+  .pla-table td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-ink-500);
+  }
+
+  .pla-td-action {
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .pla-td-action::before {
+    align-self: center;
+  }
+
+  .pla-select {
+    max-width: none;
+  }
+
+  .pla-cell-main {
+    max-width: none;
+  }
+
+  .pla-btn {
+    width: 100%;
+    min-width: 0;
+  }
 }

@@ -3,8 +3,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '@core/auth/auth.service';
 import { ResponsableAreaContextService } from '@features/responsable-area/data/responsable-area-context.service';
 import { TramitesApiService } from '@features/responsable-area/data/tramites-api.service';
+import type { SalidaFlujoDto } from '@features/responsable-area/models/salida-flujo.model';
 import {
   TRAMITE_ESTADOS,
   TRAMITE_PRIORIDADES,
@@ -23,6 +25,7 @@ type VistaBandeja = 'todos' | 'cola';
 export class ResponsableAreaTramitesComponent implements OnInit {
   private readonly api = inject(TramitesApiService);
   readonly ctx = inject(ResponsableAreaContextService);
+  readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly estados = TRAMITE_ESTADOS;
@@ -39,6 +42,14 @@ export class ResponsableAreaTramitesComponent implements OnInit {
 
   colaEstado = 'EN_PROCESO';
   colaPrioridad = '';
+
+  /** Panel de acciones de flujo (salidas / paralelo). */
+  flujoTramite: TramiteDto | null = null;
+  salidas: SalidaFlujoDto[] = [];
+  loadingFlujo = false;
+  flujoError = '';
+  flujoObs = '';
+  workingKey = '';
 
   ngOnInit(): void {
     if (this.ctx.context()?.tieneArea && !this.ctx.loading()) {
@@ -116,6 +127,93 @@ export class ResponsableAreaTramitesComponent implements OnInit {
       this.page++;
       this.load();
     }
+  }
+
+  puedeOperarFlujo(t: TramiteDto): boolean {
+    if (!t.politicaId) {
+      return false;
+    }
+    if (this.auth.isAdministrador()) {
+      return true;
+    }
+    const c = this.ctx.context();
+    if (!c?.tieneArea || !c.areaId) {
+      return false;
+    }
+    return c.areaId === t.areaActualId;
+  }
+
+  openFlujo(t: TramiteDto): void {
+    this.flujoTramite = t;
+    this.salidas = [];
+    this.flujoError = '';
+    this.flujoObs = '';
+    this.loadingFlujo = true;
+    this.api.getSalidas(t.id).subscribe({
+      next: (s) => {
+        this.salidas = s;
+        this.loadingFlujo = false;
+      },
+      error: (e) => {
+        this.loadingFlujo = false;
+        this.flujoError = this.msg(e);
+      },
+    });
+  }
+
+  closeFlujo(): void {
+    this.flujoTramite = null;
+    this.salidas = [];
+    this.flujoError = '';
+    this.flujoObs = '';
+    this.loadingFlujo = false;
+    this.workingKey = '';
+  }
+
+  salidasParalelas(): SalidaFlujoDto[] {
+    return this.salidas.filter((s) => (s.tipoFlujo || '').toUpperCase().trim() === 'PARALELO');
+  }
+
+  esParaleloMulti(): boolean {
+    return this.salidasParalelas().length >= 2;
+  }
+
+  avanzar(s: SalidaFlujoDto): void {
+    if (!this.flujoTramite) {
+      return;
+    }
+    this.workingKey = `a:${s.idConexion}`;
+    this.flujoError = '';
+    this.api.avanzarFlujo(this.flujoTramite.id, s.idConexion, this.flujoObs).subscribe({
+      next: () => {
+        this.workingKey = '';
+        this.closeFlujo();
+        this.load();
+      },
+      error: (e) => {
+        this.workingKey = '';
+        this.flujoError = this.msg(e);
+      },
+    });
+  }
+
+  aprobarParalelo(nodoRamaId: string): void {
+    if (!this.flujoTramite) {
+      return;
+    }
+    this.workingKey = `p:${nodoRamaId}`;
+    this.flujoError = '';
+    this.api.aprobarRamaParalela(this.flujoTramite.id, nodoRamaId).subscribe({
+      next: () => {
+        this.workingKey = '';
+        this.closeFlujo();
+        this.load();
+      },
+      error: (e) => {
+        this.workingKey = '';
+        this.flujoError = this.msg(e);
+      },
+    });
   }
 
   private msg(err: unknown): string {

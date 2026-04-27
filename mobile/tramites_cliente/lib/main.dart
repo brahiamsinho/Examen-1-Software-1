@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tramites_cliente/features/auth/login_screen.dart';
 import 'package:tramites_cliente/features/home/home_screen.dart';
+import 'package:tramites_cliente/features/home/mis_tramites_screen.dart';
 
 String? _token;
 String _nombres = '';
@@ -42,6 +43,10 @@ final _router = GoRouter(
           GoRouter.of(context).go('/login');
         },
       ),
+    ),
+    GoRoute(
+      path: '/mis-tramites',
+      builder: (context, state) => MisTramitesScreen(accessToken: _token!),
     ),
   ],
 );

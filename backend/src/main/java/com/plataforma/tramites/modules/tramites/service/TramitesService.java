@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -45,6 +47,7 @@ public class TramitesService {
     private final RecorridoTramiteRepository recorridoTramiteRepository;
     private final PoliticaNegocioRepository politicaNegocioRepository;
     private final PoliticaNodoInicialResolver politicaNodoInicialResolver;
+    private final TramiteFlujoAutorizacionService tramiteFlujoAutorizacionService;
     private final String intakeNodeIdConfig;
 
     public TramitesService(
@@ -52,11 +55,13 @@ public class TramitesService {
             RecorridoTramiteRepository recorridoTramiteRepository,
             PoliticaNegocioRepository politicaNegocioRepository,
             PoliticaNodoInicialResolver politicaNodoInicialResolver,
+            TramiteFlujoAutorizacionService tramiteFlujoAutorizacionService,
             @Value("${app.workflow.intake-node-id:ATENCION_CLIENTE}") String intakeNodeIdConfig) {
         this.tramiteRepository = tramiteRepository;
         this.recorridoTramiteRepository = recorridoTramiteRepository;
         this.politicaNegocioRepository = politicaNegocioRepository;
         this.politicaNodoInicialResolver = politicaNodoInicialResolver;
+        this.tramiteFlujoAutorizacionService = tramiteFlujoAutorizacionService;
         this.intakeNodeIdConfig = intakeNodeIdConfig != null ? intakeNodeIdConfig.trim() : "ATENCION_CLIENTE";
     }
 
@@ -65,7 +70,16 @@ public class TramitesService {
     }
 
     public Page<TramiteResponse> listar(Pageable pageable) {
-        return tramiteRepository.findAllByOrderByFechaRegistroDesc(pageable).map(this::toResponse);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        tramiteFlujoAutorizacionService.assertPuedeListarTramitesEnApi(auth);
+        if (tramiteFlujoAutorizacionService.hasRole(auth, TramiteFlujoAutorizacionService.ROL_ADMIN)) {
+            return tramiteRepository.findAllByOrderByFechaRegistroDesc(pageable).map(this::toResponse);
+        }
+        if (tramiteFlujoAutorizacionService.hasRole(auth, TramiteFlujoAutorizacionService.ROL_PLANIFICADOR)) {
+            return tramiteRepository.findByPoliticaIdIsNullOrderByFechaRegistroDesc(pageable).map(this::toResponse);
+        }
+        ObjectId areaId = tramiteFlujoAutorizacionService.requireUsuarioAreaId(auth);
+        return tramiteRepository.findByAreaActualIdOrderByFechaRegistroDesc(areaId, pageable).map(this::toResponse);
     }
 
     public Page<TramiteResponse> listarSinPolitica(Pageable pageable) {
@@ -73,7 +87,31 @@ public class TramitesService {
     }
 
     public TramiteResponse obtener(String id) {
+        TramiteDocument t = buscar(id);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        tramiteFlujoAutorizacionService.assertPuedeConsultarTramiteStaff(auth, t);
+        return toResponse(t);
+    }
+
+    /** Respuesta del trámite sin validar portal staff (uso interno tras flujo u operaciones ya autorizadas). */
+    public TramiteResponse obtenerInterno(String id) {
         return toResponse(buscar(id));
+    }
+
+    /** Listado paginado solo de trámites cuyo {@code clienteId} coincide (portal cliente). */
+    public Page<TramiteResponse> listarPorClienteId(String clienteIdHex, Pageable pageable) {
+        ObjectId clienteId = parseObjectId(clienteIdHex, "clienteId");
+        return tramiteRepository.findByClienteIdOrderByFechaRegistroDesc(clienteId, pageable).map(this::toResponse);
+    }
+
+    /** Obtiene un trámite solo si pertenece al cliente indicado. */
+    public TramiteResponse obtenerDeCliente(String tramiteIdHex, String clienteIdHex) {
+        ObjectId tid = parseObjectId(tramiteIdHex, "tramiteId");
+        ObjectId cid = parseObjectId(clienteIdHex, "clienteId");
+        TramiteDocument t = tramiteRepository
+                .findByIdAndClienteId(tid, cid)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Trámite no encontrado."));
+        return toResponse(t);
     }
 
     /**
@@ -194,6 +232,40 @@ public class TramitesService {
         if (!ESTADOS.contains(estado)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "estado inválido.");
         }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        tramiteFlujoAutorizacionService.assertPuedeUsarColaFifo(auth);
+        if (tramiteFlujoAutorizacionService.hasRole(auth, TramiteFlujoAutorizacionService.ROL_RESPONSABLE)) {
+            ObjectId areaId = tramiteFlujoAutorizacionService.requireUsuarioAreaId(auth);
+            if (prioridad == null || prioridad.isBlank()) {
+                return tramiteRepository
+                        .findByEstadoAndAreaActualIdOrderByFechaRegistroAscNumeroTurnoAsc(estado, areaId)
+                        .stream()
+                        .map(this::toResponse)
+                        .toList();
+            }
+            validarPrioridad(prioridad);
+            return tramiteRepository
+                    .findByEstadoAndPrioridadAndAreaActualIdOrderByFechaRegistroAscNumeroTurnoAsc(
+                            estado, prioridad.trim(), areaId)
+                    .stream()
+                    .map(this::toResponse)
+                    .toList();
+        }
+        if (tramiteFlujoAutorizacionService.hasRole(auth, TramiteFlujoAutorizacionService.ROL_PLANIFICADOR)) {
+            if (prioridad == null || prioridad.isBlank()) {
+                return tramiteRepository.findByEstadoOrderByFechaRegistroAscNumeroTurnoAsc(estado).stream()
+                        .filter(t -> t.getPoliticaId() == null)
+                        .map(this::toResponse)
+                        .toList();
+            }
+            validarPrioridad(prioridad);
+            return tramiteRepository
+                    .findByEstadoAndPrioridadOrderByFechaRegistroAscNumeroTurnoAsc(estado, prioridad.trim())
+                    .stream()
+                    .filter(t -> t.getPoliticaId() == null)
+                    .map(this::toResponse)
+                    .toList();
+        }
         if (prioridad == null || prioridad.isBlank()) {
             return tramiteRepository.findByEstadoOrderByFechaRegistroAscNumeroTurnoAsc(estado).stream()
                     .map(this::toResponse)
@@ -208,13 +280,36 @@ public class TramitesService {
     }
 
     public List<RecorridoTramiteResponse> listarRecorridos(String tramiteId) {
+        TramiteDocument t = buscar(tramiteId);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        tramiteFlujoAutorizacionService.assertPuedeConsultarTramiteStaff(auth, t);
+        return recorridosDeTramite(t.getId());
+    }
+
+    /**
+     * Historial de recorridos sin chequeo de rol de staff — invocar solo tras verificar acceso (p. ej. portal
+     * cliente).
+     */
+    public List<RecorridoTramiteResponse> listarRecorridosInterno(String tramiteId) {
         ObjectId tid = parseObjectId(tramiteId, "tramiteId");
         if (!tramiteRepository.existsById(tid)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Trámite no encontrado.");
         }
-        return recorridoTramiteRepository.findByTramiteIdOrderByFechaEntradaAsc(tid).stream()
+        return recorridosDeTramite(tid);
+    }
+
+    private List<RecorridoTramiteResponse> recorridosDeTramite(ObjectId tramiteId) {
+        return recorridoTramiteRepository.findByTramiteIdOrderByFechaEntradaAsc(tramiteId).stream()
                 .map(this::toRecorridoResponse)
                 .toList();
+    }
+
+    /** Registro vía {@code POST /api/tramites/{id}/recorridos} (política de área / admin). */
+    public RecorridoTramiteResponse registrarRecorridoDesdeApi(String tramiteId, RecorridoTramiteRequest body) {
+        TramiteDocument t = buscar(tramiteId);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        tramiteFlujoAutorizacionService.assertPuedeRegistrarRecorridoViaApiTramites(auth, t, body);
+        return registrarRecorrido(tramiteId, body);
     }
 
     /** Registra un recorrido (entrada a nodo/área). */

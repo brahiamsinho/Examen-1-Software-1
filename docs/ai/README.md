@@ -1,12 +1,16 @@
 # Memoria del proyecto (`docs/ai`)
 
-En este repositorio la memoria persistente del agente vive en **`docsAi/ai/`** (misma función que describe `AGENTS.md` para `docs/ai/`).
+La memoria persistente del proyecto se mantiene en **`docs/ai/`**.
 
 Archivos canónicos:
 
-- `docsAi/ai/CURRENT_STATE.md`
-- `docsAi/ai/HANDOFF_LATEST.md`
-- `docsAi/ai/NEXT_STEPS.md`
-- `docsAi/ai/DECISIONS_LOG.md`
-- `docsAi/ai/ARCHITECTURE.md`
-- `docsAi/ai/sessions/`
+- `docs/ai/PROJECT_VISION.md`
+- `docs/ai/ARCHITECTURE.md`
+- `docs/ai/TECH_STACK.md`
+- `docs/ai/CURRENT_STATE.md`
+- `docs/ai/HANDOFF_LATEST.md`
+- `docs/ai/NEXT_STEPS.md`
+- `docs/ai/DECISIONS_LOG.md`
+- `docs/ai/sessions/`
+
+`docsAi/ai/` se consolidó y se dejó fuera para evitar duplicidad de contexto.

@@ -87,3 +87,127 @@
     transition: none;
   }
 }
+
+.ra-flujo-btn {
+  white-space: nowrap;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.ra-flujo-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 80;
+}
+
+.ra-flujo-dialog {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, calc(100vw - 2rem));
+  max-height: min(86vh, 640px);
+  overflow: auto;
+  z-index: 90;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.18);
+  border: 1px solid #e2e8f0;
+  padding: 1.1rem 1.25rem 1.25rem;
+}
+
+.ra-flujo-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.ra-flujo-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ra-flujo-close {
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ra-flujo-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.ra-flujo-meta {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.ra-flujo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.ra-flujo-field input {
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font: inherit;
+}
+
+.ra-flujo-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.ra-flujo-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.ra-flujo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ra-flujo-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.ra-flujo-cond {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: #64748b;
+}

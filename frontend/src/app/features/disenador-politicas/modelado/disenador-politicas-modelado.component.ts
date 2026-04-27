@@ -343,8 +343,8 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       return;
     }
     const nombre = this.inspNodoNombre.trim();
-    const areaId = this.inspNodoAreaId.trim() || null;
-    const respId = this.inspNodoResponsableId.trim();
+    const areaId = this.asStringId(this.inspNodoAreaId)?.trim() || null;
+    const respId = this.asStringId(this.inspNodoResponsableId)?.trim() || '';
     let asignaciones: PoliticaAsignacionDto[] = [];
     if (areaId && respId) {
       asignaciones = [
@@ -384,7 +384,7 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
 
   onCambioAreaNodo(): void {
     this.inspNodoResponsableId = '';
-    this.cargarUsuariosArea(this.inspNodoAreaId.trim());
+    this.cargarUsuariosArea(this.asStringId(this.inspNodoAreaId) ?? '');
   }
 
   reiniciarVista(): void {
@@ -393,11 +393,12 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
   }
 
   private cargarUsuariosArea(areaId: string): void {
-    if (!areaId) {
+    const normalized = this.asStringId(areaId) ?? '';
+    if (!normalized) {
       this.usuariosDelArea = [];
       return;
     }
-    this.usuariosAreaApi.listPorArea(areaId).subscribe({
+    this.usuariosAreaApi.listPorArea(normalized).subscribe({
       next: (u) => (this.usuariosDelArea = u),
       error: () => (this.usuariosDelArea = []),
     });
@@ -643,9 +644,9 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
     this.selectedNode = node;
     const d = node.getData() as PoliticaNodoCellData;
     this.inspNodoNombre = d.nombre;
-    this.inspNodoAreaId = d.areaId ?? '';
+    this.inspNodoAreaId = this.asStringId(d.areaId) ?? '';
     const first = d.asignacionesResponsable?.[0];
-    this.inspNodoResponsableId = first?.usuarioId ?? '';
+    this.inspNodoResponsableId = this.asStringId(first?.usuarioId) ?? '';
     this.cargarUsuariosArea(this.inspNodoAreaId);
     if (client) {
       this.lastPointerClientX = client.x;
@@ -1041,5 +1042,26 @@ export class DisenadorPoliticasModeladoComponent implements AfterViewInit, OnDes
       return err.message;
     }
     return 'Error de red o servidor.';
+  }
+
+  private asStringId(value: unknown): string | null {
+    if (value == null) {
+      return null;
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (typeof value === 'object') {
+      const rec = value as Record<string, unknown>;
+      const oid = rec['$oid'];
+      if (typeof oid === 'string') {
+        return oid;
+      }
+      const hex = rec['hexString'];
+      if (typeof hex === 'string') {
+        return hex;
+      }
+    }
+    return String(value);
   }
 }

@@ -1,53 +1,130 @@
 <section class="pla-pend" aria-labelledby="pla-pend-title">
-  <h2 id="pla-pend-title" class="pla-pend-title">Trámites sin política asignada</h2>
-  <p class="pla-pend-lead">
-    Estos expedientes ingresaron por atención al cliente. Asigná la política de negocio correcta; el sistema los ubica
-    en el nodo inicial (<code>esInicial</code>) de esa política.
-  </p>
+  <header class="pla-pend-head">
+    <p class="pla-pend-kicker">Planificación</p>
+    <h2 id="pla-pend-title" class="pla-pend-title">Trámites sin política asignada</h2>
+    <p class="pla-pend-lead">
+      Expedientes ingresados por atención al cliente. Elegí la política de negocio y confirmá: el sistema ubica el
+      trámite en el nodo inicial (<code>esInicial</code>) de esa política.
+    </p>
+  </header>
+
+  <div class="pla-pend-toolbar" role="region" aria-label="Acciones del listado">
+    @if (!loading && totalElements > 0) {
+      <p class="pla-pend-count" role="status">
+        <span class="pla-pend-count-value">{{ totalElements }}</span>
+        <span class="pla-pend-count-label">{{ totalElements === 1 ? 'pendiente' : 'pendientes' }}</span>
+      </p>
+    } @else if (!loading && totalElements === 0 && !errorMsg) {
+      <p class="pla-pend-count pla-pend-count--muted" role="status">0 pendientes</p>
+    }
+    <button type="button" class="pla-toolbar-btn" (click)="refresh()" [disabled]="loading" title="Actualizar listado">
+      <svg class="pla-toolbar-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
+        <path
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 5.582 9M20 20v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"
+        />
+      </svg>
+      <span>Actualizar</span>
+    </button>
+  </div>
+
+  @if (successMsg) {
+    <p class="pla-pend-banner pla-pend-banner--success" role="status">{{ successMsg }}</p>
+  }
 
   @if (errorMsg) {
-    <p class="pla-pend-error" role="alert">{{ errorMsg }}</p>
+    <p class="pla-pend-banner pla-pend-banner--error" role="alert">{{ errorMsg }}</p>
+  }
+
+  @if (politicas.length === 0 && !loading) {
+    <p class="pla-pend-banner pla-pend-banner--warn" role="status">
+      No hay políticas publicadas en catálogo. Sin políticas no se puede asignar; revisá con un diseñador de políticas.
+    </p>
   }
 
   @if (loading) {
-    <p class="pla-pend-loading" role="status">Cargando…</p>
+    <div class="pla-skeleton" aria-busy="true" aria-live="polite">
+      <span class="visually-hidden">Cargando listado de trámites…</span>
+      @for (s of [1, 2, 3, 4, 5, 6]; track s) {
+        <div class="pla-skeleton-row"></div>
+      }
+    </div>
   } @else if (tramites.length === 0) {
-    <p class="pla-pend-empty">No hay trámites pendientes de asignación.</p>
+    <div class="pla-empty" role="status">
+      <div class="pla-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor">
+          <path
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z"
+          />
+        </svg>
+      </div>
+      <p class="pla-empty-title">No hay trámites pendientes</p>
+      <p class="pla-empty-text">Cuando ingresen expedientes sin política, aparecerán acá para asignación.</p>
+    </div>
   } @else {
     <div class="pla-table-wrap">
       <table class="pla-table">
+        <caption class="visually-hidden">
+          Tabla de trámites pendientes de asignación de política. Por fila: código, asunto, cliente, fecha de ingreso,
+          nodo actual, selector de política y botón asignar.
+        </caption>
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Asunto</th>
-            <th>Cliente</th>
-            <th>Nodo actual</th>
-            <th>Política</th>
-            <th></th>
+            <th scope="col">Código</th>
+            <th scope="col">Asunto</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Ingreso</th>
+            <th scope="col">Nodo actual</th>
+            <th scope="col">Política</th>
+            <th scope="col"><span class="visually-hidden">Acción</span></th>
           </tr>
         </thead>
         <tbody>
           @for (t of tramites; track t.id) {
             <tr>
-              <td><code>{{ t.codigo }}</code></td>
-              <td>{{ t.asunto }}</td>
-              <td>{{ t.clienteId }}</td>
-              <td>{{ t.nodoActualId ?? '—' }}</td>
-              <td>
-                <select class="pla-select" [(ngModel)]="seleccionPolitica[t.id]" [name]="'pol-' + t.id">
+              <td data-label="Código">
+                <span class="pla-code">{{ t.codigo }}</span>
+              </td>
+              <td data-label="Asunto">
+                <span class="pla-cell-main">{{ t.asunto }}</span>
+              </td>
+              <td data-label="Cliente">
+                <span class="pla-mono">{{ t.clienteId }}</span>
+              </td>
+              <td data-label="Ingreso">{{ formatFecha(t.fechaRegistro) }}</td>
+              <td data-label="Nodo actual">
+                <span class="pla-mono">{{ t.nodoActualId ?? '—' }}</span>
+              </td>
+              <td data-label="Política">
+                <select
+                  class="pla-select"
+                  [(ngModel)]="seleccionPolitica[t.id]"
+                  [name]="'pol-' + t.id"
+                  [attr.aria-label]="'Política para el trámite ' + t.codigo"
+                >
                   @for (p of politicas; track p.id) {
                     <option [value]="p.id">{{ p.nombre }} (v{{ p.version }})</option>
                   }
                 </select>
               </td>
-              <td>
+              <td data-label="Acción" class="pla-td-action">
                 <button
                   type="button"
                   class="pla-btn"
                   (click)="asignar(t)"
                   [disabled]="assigning[t.id] || politicas.length === 0"
                 >
-                  {{ assigning[t.id] ? 'Asignando…' : 'Asignar' }}
+                  @if (assigning[t.id]) {
+                    <span class="pla-btn-spinner" aria-hidden="true"></span>
+                    <span>Asignando…</span>
+                  } @else {
+                    <span>Asignar</span>
+                  }
                 </button>
               </td>
             </tr>
@@ -57,10 +134,26 @@
     </div>
 
     @if (totalPages > 1) {
-      <nav class="pla-pager" aria-label="Paginación">
-        <button type="button" class="pla-pager-btn" (click)="setPage(page - 1)" [disabled]="page <= 0">Anterior</button>
-        <span class="pla-pager-meta">Página {{ page + 1 }} de {{ totalPages }} ({{ totalElements }})</span>
-        <button type="button" class="pla-pager-btn" (click)="setPage(page + 1)" [disabled]="page >= totalPages - 1">
+      <nav class="pla-pager" aria-label="Paginación del listado">
+        <button
+          type="button"
+          class="pla-pager-btn"
+          (click)="setPage(page - 1)"
+          [disabled]="page <= 0"
+        >
+          Anterior
+        </button>
+        <span class="pla-pager-meta">
+          Página <strong>{{ page + 1 }}</strong> de {{ totalPages }}
+          <span class="pla-pager-sep">·</span>
+          {{ totalElements }} {{ totalElements === 1 ? 'registro' : 'registros' }}
+        </span>
+        <button
+          type="button"
+          class="pla-pager-btn"
+          (click)="setPage(page + 1)"
+          [disabled]="page >= totalPages - 1"
+        >
           Siguiente
         </button>
       </nav>

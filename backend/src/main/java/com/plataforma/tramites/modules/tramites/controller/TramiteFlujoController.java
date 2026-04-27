@@ -2,6 +2,7 @@ package com.plataforma.tramites.modules.tramites.controller;
 
 import com.plataforma.tramites.modules.tramites.dto.SalidaFlujoDto;
 import com.plataforma.tramites.modules.tramites.dto.TramiteAprobarRamaParalelaRequest;
+import com.plataforma.tramites.modules.tramites.dto.TramiteFlujoAvanzarRequest;
 import com.plataforma.tramites.modules.tramites.dto.TramiteResponse;
 import com.plataforma.tramites.modules.tramites.service.TramiteFlujoService;
 import jakarta.validation.Valid;
@@ -28,6 +29,13 @@ public class TramiteFlujoController {
     @GetMapping("/salidas")
     public List<SalidaFlujoDto> salidas(@PathVariable String tramiteId) {
         return tramiteFlujoService.listarSalidas(tramiteId);
+    }
+
+    /** Avance simple (SECUENCIAL / una salida / arista elegida); no bifurcación PARALELO múltiple. */
+    @PostMapping("/avanzar")
+    public TramiteResponse avanzar(@PathVariable String tramiteId, @Valid @RequestBody TramiteFlujoAvanzarRequest body) {
+        String usuarioId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return tramiteFlujoService.avanzar(tramiteId, body.getIdConexion(), body.getObservacion(), usuarioId);
     }
 
     @PostMapping("/aprobar-rama-paralela")

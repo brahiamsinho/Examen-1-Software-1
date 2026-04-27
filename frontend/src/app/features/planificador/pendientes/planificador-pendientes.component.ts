@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -11,7 +10,7 @@ import type { TramiteDto } from '@features/responsable-area/models/tramite.model
 @Component({
   selector: 'app-planificador-pendientes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './planificador-pendientes.component.html',
   styleUrl: './planificador-pendientes.component.scss',
 })
@@ -26,6 +25,7 @@ export class PlanificadorPendientesComponent implements OnInit {
   seleccionPolitica: Record<string, string> = {};
   loading = false;
   errorMsg = '';
+  successMsg = '';
   page = 0;
   size = 15;
   totalPages = 0;
@@ -48,9 +48,15 @@ export class PlanificadorPendientesComponent implements OnInit {
     });
   }
 
-  loadTramites(): void {
+  /**
+   * @param clearSuccess si es false (p. ej. recarga tras asignar), se conserva el banner de éxito.
+   */
+  loadTramites(clearSuccess = true): void {
     this.loading = true;
     this.errorMsg = '';
+    if (clearSuccess) {
+      this.successMsg = '';
+    }
     this.planApi
       .listarPendientesPolitica(this.page, this.size)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -74,6 +80,11 @@ export class PlanificadorPendientesComponent implements OnInit {
       });
   }
 
+  refresh(): void {
+    this.loadPoliticas();
+    this.loadTramites();
+  }
+
   setPage(p: number): void {
     this.page = Math.max(0, Math.min(p, Math.max(0, this.totalPages - 1)));
     this.loadTramites();
@@ -83,21 +94,37 @@ export class PlanificadorPendientesComponent implements OnInit {
     const pid = this.seleccionPolitica[t.id];
     if (!pid) {
       this.errorMsg = 'Elegí una política para el trámite ' + t.codigo + '.';
+      this.successMsg = '';
       return;
     }
     this.assigning[t.id] = true;
     this.errorMsg = '';
+    this.successMsg = '';
     this.planApi.asignarPolitica(t.id, pid).subscribe({
       next: () => {
         this.assigning[t.id] = false;
         delete this.seleccionPolitica[t.id];
-        this.loadTramites();
+        const pol = this.politicas.find((x) => x.id === pid);
+        this.successMsg = `Se asignó la política «${pol?.nombre ?? pid}» al trámite ${t.codigo}.`;
+        this.loadTramites(false);
       },
       error: (e) => {
         this.assigning[t.id] = false;
         this.errorMsg = this.msg(e);
+        this.successMsg = '';
       },
     });
+  }
+
+  formatFecha(iso: string | undefined): string {
+    if (!iso) {
+      return '—';
+    }
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) {
+      return '—';
+    }
+    return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   private msg(e: unknown): string {

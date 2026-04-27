@@ -23,4 +23,16 @@ public interface TramiteRepository extends MongoRepository<TramiteDocument, Obje
             String estado, String prioridad);
 
     Page<TramiteDocument> findByPoliticaIdIsNullOrderByFechaRegistroDesc(Pageable pageable);
+
+    Page<TramiteDocument> findByClienteIdOrderByFechaRegistroDesc(ObjectId clienteId, Pageable pageable);
+
+    Optional<TramiteDocument> findByIdAndClienteId(ObjectId id, ObjectId clienteId);
+
+    Page<TramiteDocument> findByAreaActualIdOrderByFechaRegistroDesc(ObjectId areaActualId, Pageable pageable);
+
+    List<TramiteDocument> findByEstadoAndAreaActualIdOrderByFechaRegistroAscNumeroTurnoAsc(
+            String estado, ObjectId areaActualId);
+
+    List<TramiteDocument> findByEstadoAndPrioridadAndAreaActualIdOrderByFechaRegistroAscNumeroTurnoAsc(
+            String estado, String prioridad, ObjectId areaActualId);
 }

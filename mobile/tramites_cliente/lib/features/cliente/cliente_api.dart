@@ -29,10 +29,160 @@ class ClienteApiException implements Exception {
   final int? statusCode;
 }
 
+/// Resumen alineado a `TramiteResponse` del backend.
+class TramiteClienteResumen {
+  TramiteClienteResumen({
+    required this.id,
+    required this.codigo,
+    required this.asunto,
+    required this.estado,
+    this.politicaId,
+    this.nodoActualId,
+    this.areaActualId,
+  });
+
+  final String id;
+  final String codigo;
+  final String asunto;
+  final String estado;
+  final String? politicaId;
+  final String? nodoActualId;
+  final String? areaActualId;
+
+  factory TramiteClienteResumen.fromJson(Map<String, dynamic> m) {
+    return TramiteClienteResumen(
+      id: m['id'] as String? ?? '',
+      codigo: m['codigo'] as String? ?? '',
+      asunto: m['asunto'] as String? ?? '',
+      estado: m['estado'] as String? ?? '',
+      politicaId: m['politicaId'] as String?,
+      nodoActualId: m['nodoActualId'] as String?,
+      areaActualId: m['areaActualId'] as String?,
+    );
+  }
+}
+
+class TramiteClientePage {
+  TramiteClientePage({
+    required this.content,
+    required this.totalElements,
+    required this.totalPages,
+    required this.number,
+  });
+
+  final List<TramiteClienteResumen> content;
+  final int totalElements;
+  final int totalPages;
+  final int number;
+
+  factory TramiteClientePage.fromJson(Map<String, dynamic> m) {
+    final raw = m['content'];
+    final list = <TramiteClienteResumen>[];
+    if (raw is List) {
+      for (final e in raw) {
+        if (e is Map<String, dynamic>) {
+          list.add(TramiteClienteResumen.fromJson(e));
+        }
+      }
+    }
+    return TramiteClientePage(
+      content: list,
+      totalElements: (m['totalElements'] as num?)?.toInt() ?? list.length,
+      totalPages: (m['totalPages'] as num?)?.toInt() ?? 1,
+      number: (m['number'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+class RecorridoCliente {
+  RecorridoCliente({
+    required this.nodoId,
+    this.areaId,
+    this.estado,
+    this.observacion,
+    this.fechaEntrada,
+  });
+
+  final String? nodoId;
+  final String? areaId;
+  final String? estado;
+  final String? observacion;
+  final String? fechaEntrada;
+
+  factory RecorridoCliente.fromJson(Map<String, dynamic> m) {
+    return RecorridoCliente(
+      nodoId: m['nodoId'] as String?,
+      areaId: m['areaId'] as String?,
+      estado: m['estado'] as String?,
+      observacion: m['observacion'] as String?,
+      fechaEntrada: m['fechaEntrada'] as String?,
+    );
+  }
+}
+
+class ClienteTramiteDetalle {
+  ClienteTramiteDetalle({required this.tramite, required this.recorridos});
+
+  final TramiteClienteResumen tramite;
+  final List<RecorridoCliente> recorridos;
+
+  factory ClienteTramiteDetalle.fromJson(Map<String, dynamic> m) {
+    final t = m['tramite'];
+    final tramite = t is Map<String, dynamic>
+        ? TramiteClienteResumen.fromJson(t)
+        : TramiteClienteResumen(id: '', codigo: '', asunto: '', estado: '');
+    final raw = m['recorridos'];
+    final recs = <RecorridoCliente>[];
+    if (raw is List) {
+      for (final e in raw) {
+        if (e is Map<String, dynamic>) {
+          recs.add(RecorridoCliente.fromJson(e));
+        }
+      }
+    }
+    return ClienteTramiteDetalle(tramite: tramite, recorridos: recs);
+  }
+}
+
 class ClienteApi {
   ClienteApi({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
+
+  Future<TramiteClientePage> listarMisTramites({
+    required String accessToken,
+    int page = 0,
+    int size = 20,
+  }) async {
+    final uri = Uri.parse('$kApiBaseUrl/api/cliente/tramites').replace(
+      queryParameters: {'page': '$page', 'size': '$size'},
+    );
+    final r = await _client.get(uri, headers: {'Authorization': 'Bearer $accessToken'});
+    if (r.statusCode < 200 || r.statusCode >= 300) {
+      throw ClienteApiException('No se pudo cargar el listado (${r.statusCode})', statusCode: r.statusCode);
+    }
+    final map = jsonDecode(r.body) as Map<String, dynamic>;
+    return TramiteClientePage.fromJson(map);
+  }
+
+  Future<ClienteTramiteDetalle> obtenerDetalleTramite({
+    required String accessToken,
+    required String tramiteId,
+  }) async {
+    final uri = Uri.parse('$kApiBaseUrl/api/cliente/tramites/${Uri.encodeComponent(tramiteId)}');
+    final r = await _client.get(uri, headers: {'Authorization': 'Bearer $accessToken'});
+    if (r.statusCode < 200 || r.statusCode >= 300) {
+      String? msg;
+      try {
+        final map = jsonDecode(r.body) as Map<String, dynamic>?;
+        final m = map?['message'];
+        if (m is String) msg = m;
+      } catch (_) {}
+      throw ClienteApiException(msg ?? 'Trámite no encontrado (${r.statusCode})', statusCode: r.statusCode);
+    }
+    final map = jsonDecode(r.body) as Map<String, dynamic>;
+    return ClienteTramiteDetalle.fromJson(map);
+  }
 
   /// Inicia trámite con archivo; entra por atención al cliente.
   Future<InicioTramiteResult> iniciarTramiteConDocumento({
