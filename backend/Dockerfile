@@ -23,6 +23,10 @@ COPY --from=builder /app/target/*.jar app.jar
 # wget: healthcheck en docker-compose (imagen JRE mínima)
 RUN apk add --no-cache wget
 
+# Uploads (ClienteTramitesService / app.storage.upload-dir): appuser debe poder crear ./data/uploads
+RUN mkdir -p /app/data/uploads \
+    && chown -R appuser:appgroup /app/data
+
 USER appuser
 
 EXPOSE 8080

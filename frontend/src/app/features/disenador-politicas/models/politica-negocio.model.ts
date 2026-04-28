@@ -16,6 +16,10 @@ export interface PoliticaNodoDto {
   esFinal: boolean;
   areaId?: string | null;
   asignacionesResponsable?: PoliticaAsignacionDto[];
+  /** URL HTTPS (p. ej. Google Forms) para el responsable en el nodo actual del flujo. */
+  formularioExternoUrl?: string | null;
+  /** Carril / swimlane BPMN (texto libre). */
+  carrilBpmn?: string | null;
 }
 
 export interface PoliticaConexionDto {
@@ -35,6 +39,8 @@ export interface PoliticaNegocioDto {
   lockVersion: number;
   estado: string;
   fechaCreacion: string;
+  /** Fuente canónica BPMN del modelador. */
+  bpmnXml?: string | null;
   nodos: PoliticaNodoDto[];
   conexiones: PoliticaConexionDto[];
 }
@@ -46,6 +52,7 @@ export interface PoliticaUpsertBody {
   /** Obligatorio en PUT; omitir en POST de creación. */
   lockVersion?: number;
   estado: string;
+  bpmnXml?: string | null;
   nodos: PoliticaNodoUpsert[];
   conexiones: PoliticaConexionUpsert[];
 }
@@ -60,6 +67,8 @@ export interface PoliticaNodoUpsert {
   esFinal: boolean;
   areaId?: string | null;
   asignacionesResponsable?: PoliticaAsignacionUpsert[];
+  formularioExternoUrl?: string | null;
+  carrilBpmn?: string | null;
 }
 
 export interface PoliticaAsignacionUpsert {
@@ -103,6 +112,8 @@ export function buildDefaultPoliticaUpsert(nombre: string, descripcion: string, 
         esFinal: false,
         areaId: null,
         asignacionesResponsable: [],
+        formularioExternoUrl: null,
+        carrilBpmn: null,
       },
       {
         idNodo: 'n_actividad',
@@ -114,6 +125,8 @@ export function buildDefaultPoliticaUpsert(nombre: string, descripcion: string, 
         esFinal: false,
         areaId: null,
         asignacionesResponsable: [],
+        formularioExternoUrl: null,
+        carrilBpmn: null,
       },
       {
         idNodo: 'n_fin',
@@ -125,6 +138,8 @@ export function buildDefaultPoliticaUpsert(nombre: string, descripcion: string, 
         esFinal: true,
         areaId: null,
         asignacionesResponsable: [],
+        formularioExternoUrl: null,
+        carrilBpmn: null,
       },
     ],
     conexiones: [
@@ -156,16 +171,30 @@ export function politicaDtoToUpsertBody(p: PoliticaNegocioDto): PoliticaUpsertBo
     }
     if (typeof value === 'object') {
       const rec = value as Record<string, unknown>;
-      const oid = rec['$oid'];
-      if (typeof oid === 'string') {
-        return oid;
+      const directKeys = ['$oid', 'oid', 'hexString', 'id', '_id'] as const;
+      for (const key of directKeys) {
+        const candidate = rec[key];
+        if (typeof candidate === 'string' && candidate.trim()) {
+          return candidate;
+        }
       }
-      const hex = rec['hexString'];
-      if (typeof hex === 'string') {
-        return hex;
+      const toHex = rec['toHexString'];
+      if (typeof toHex === 'function') {
+        const resolved = String((toHex as () => unknown).call(value));
+        if (resolved && resolved !== '[object Object]') {
+          return resolved;
+        }
+      }
+      const toStr = rec['toString'];
+      if (typeof toStr === 'function') {
+        const resolved = String((toStr as () => unknown).call(value));
+        if (resolved && resolved !== '[object Object]') {
+          return resolved;
+        }
       }
     }
-    return String(value);
+    const fallback = String(value);
+    return fallback === '[object Object]' ? null : fallback;
   };
 
   return {
@@ -174,6 +203,7 @@ export function politicaDtoToUpsertBody(p: PoliticaNegocioDto): PoliticaUpsertBo
     version: p.version,
     lockVersion: p.lockVersion ?? 0,
     estado: p.estado,
+    bpmnXml: p.bpmnXml?.trim() || null,
     nodos: p.nodos.map((n) => ({
       idNodo: n.idNodo,
       nombre: n.nombre,
@@ -189,6 +219,8 @@ export function politicaDtoToUpsertBody(p: PoliticaNegocioDto): PoliticaUpsertBo
         fechaAsignacion: a.fechaAsignacion,
         estado: a.estado,
       })),
+      formularioExternoUrl: n.formularioExternoUrl?.trim() || null,
+      carrilBpmn: n.carrilBpmn?.trim() || null,
     })),
     conexiones: p.conexiones.map((c) => ({
       idConexion: c.idConexion,

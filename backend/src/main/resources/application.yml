@@ -1,4 +1,5 @@
 server:
+  address: 0.0.0.0
   port: ${SERVER_PORT:8080}
 
 spring:
@@ -54,3 +55,5 @@ app:
     intake-area-id: ${APP_WORKFLOW_INTAKE_AREA_ID:}
   storage:
     upload-dir: ${APP_UPLOAD_DIR:./data/uploads}
+  firebase:
+    credentials-path: ${FIREBASE_CREDENTIALS_PATH:}

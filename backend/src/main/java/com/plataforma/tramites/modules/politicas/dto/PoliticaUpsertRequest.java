@@ -24,6 +24,10 @@ public class PoliticaUpsertRequest {
     @NotBlank
     private String estado;
 
+    /** XML BPMN opcional (canon visual del modelador). */
+    @Size(max = 2_000_000)
+    private String bpmnXml;
+
     @NotNull
     @Valid
     private List<NodoPoliticaRequest> nodos;
@@ -69,6 +73,14 @@ public class PoliticaUpsertRequest {
         this.estado = estado;
     }
 
+    public String getBpmnXml() {
+        return bpmnXml;
+    }
+
+    public void setBpmnXml(String bpmnXml) {
+        this.bpmnXml = bpmnXml;
+    }
+
     public List<NodoPoliticaRequest> getNodos() {
         return nodos;
     }
@@ -110,6 +122,14 @@ public class PoliticaUpsertRequest {
         private boolean esInicial;
         private boolean esFinal;
         private String areaId;
+
+        /** URL HTTPS opcional (p. ej. Google Forms). */
+        @Size(max = 2048)
+        private String formularioExternoUrl;
+
+        /** Carril / swimlane BPMN (texto libre corto). */
+        @Size(max = 160)
+        private String carrilBpmn;
 
         @Valid
         private List<AsignacionResponsableRequest> asignacionesResponsable;
@@ -176,6 +196,22 @@ public class PoliticaUpsertRequest {
 
         public void setAreaId(String areaId) {
             this.areaId = areaId;
+        }
+
+        public String getFormularioExternoUrl() {
+            return formularioExternoUrl;
+        }
+
+        public void setFormularioExternoUrl(String formularioExternoUrl) {
+            this.formularioExternoUrl = formularioExternoUrl;
+        }
+
+        public String getCarrilBpmn() {
+            return carrilBpmn;
+        }
+
+        public void setCarrilBpmn(String carrilBpmn) {
+            this.carrilBpmn = carrilBpmn;
         }
 
         public List<AsignacionResponsableRequest> getAsignacionesResponsable() {

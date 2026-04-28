@@ -1,14 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:tramites_cliente/core/api_config.dart';
 import 'package:flutter/services.dart';
+import 'package:tramites_cliente/core/firebase_config.dart';
 import 'package:tramites_cliente/features/auth/auth_repository.dart';
+import 'package:tramites_cliente/features/notificaciones/notificacion_api.dart';
 
 /// Pantalla de acceso al portal **CLIENTE**: credenciales según colección `usuarios`
 /// (`correo`, `contrasena` hasheada en servidor) y `POST /api/auth/login` con `portalRol`.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.onLoggedIn});
 
-  final void Function(String token, String nombres) onLoggedIn;
+  final void Function(String token, String nombres, String correo, String rol, String? apellidos) onLoggedIn;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -19,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _correo = TextEditingController();
   final _contrasena = TextEditingController();
   final _repo = AuthRepository();
+  final _notificacionApi = NotificacionApi();
   bool _loading = false;
   String? _error;
 
@@ -38,14 +42,32 @@ class _LoginScreenState extends State<LoginScreen> {
         correo: _correo.text.trim(),
         contrasena: _contrasena.text,
       );
-      widget.onLoggedIn(r.accessToken, r.nombres);
+      await _registrarFcmToken(r.accessToken);
+      widget.onLoggedIn(r.accessToken, r.nombres, r.correo, r.rolCodigo, r.apellidos);
     } on AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {
-      setState(() => _error = 'Sin conexión al servidor. Revisá la URL en api_config.dart.');
+      setState(() {
+        _error = kDebugMode
+            ? 'Sin conexión al servidor (base: $kApiBaseUrl). En físico: copiá .env.example → .env con API_BASE_URL=http://IP_LAN_DE_TU_PC:8080 y `docker compose` debe publicar el backend (puerto 8080).'
+            : 'Sin conexión al servidor. Revisá la URL en api_config.dart y la red WiFi.';
+      });
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _registrarFcmToken(String token) async {
+    try {
+      await FirebaseConfig.requestPermission();
+      final fcmToken = await FirebaseConfig.getToken();
+      if (fcmToken != null) {
+        await _notificacionApi.registrarFcmToken(
+          accessToken: token,
+          fcmToken: fcmToken,
+        );
+      }
+    } catch (_) {}
   }
 
   @override

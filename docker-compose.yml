@@ -12,6 +12,7 @@ networks:
 volumes:
   mongo-data:
   redis-data:
+  ml-models:
 
 services:
 
@@ -73,11 +74,18 @@ services:
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-120}
       APP_DEV_AUTH_SEED_ENABLED: ${APP_DEV_AUTH_SEED_ENABLED:-true}
       APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+      FIREBASE_CREDENTIALS_PATH: ${FIREBASE_CREDENTIALS_PATH:-}
+    volumes:
+      - ${FIREBASE_CREDENTIALS_PATH:-/dev/null}:/app/firebase-credentials.json:ro
     depends_on:
       mongo:
         condition: service_healthy
       redis:
         condition: service_healthy
+    ports:
+      # Spring directo al host: emulador Android (10.0.2.2:8080) y teléfono físico (IP_LAN:8080).
+      # Nginx sigue siendo la entrada web en :80; esto es solo para clientes móviles / herramientas API.
+      - "${BACKEND_HOST_PORT:-8080}:8080"
     networks:
       - tramites-net
     restart: unless-stopped
@@ -101,6 +109,15 @@ services:
       CORS_ORIGINS: ${FASTAPI_CORS_ORIGINS:-*}
       PORT: ${FASTAPI_PORT:-8000}
       API_PREFIX: ${FASTAPI_API_PREFIX:-/api}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/${MONGO_DB:-tramitesdb}}
+      MONGODB_DB: ${MONGO_DB:-tramitesdb}
+      MODEL_DIR: ${ML_MODEL_DIR:-/data/models}
+      DEFAULT_POLICY_ID: ${DEFAULT_POLICY_ID:-default_policy}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ml-models:/data/models
     networks:
       - tramites-net
     restart: unless-stopped

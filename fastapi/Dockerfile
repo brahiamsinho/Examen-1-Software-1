@@ -19,6 +19,12 @@ RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/uvicorn
 
+# Install python-multipart for file upload
+RUN pip install --no-cache-dir python-multipart
+
+# Create model directory with user permissions
+RUN mkdir -p /data/models && chown appuser:appgroup /data/models
+
 COPY app ./app
 
 USER appuser

@@ -124,6 +124,7 @@ ensureCollection("politicas_negocio", {
       version: { bsonType: "int" },
       estado: { enum: ESTADO_POLITICA },
       fechaCreacion: { bsonType: "date" },
+      bpmnXml: { bsonType: ["string", "null"] },
       nodos: {
         bsonType: "array",
         items: {
@@ -150,7 +151,9 @@ ensureCollection("politicas_negocio", {
                   estado: { bsonType: "bool" }
                 }
               }
-            }
+            },
+            formularioExternoUrl: { bsonType: ["string", "null"] },
+            carrilBpmn: { bsonType: ["string", "null"] }
           }
         }
       },
@@ -173,6 +176,29 @@ ensureCollection("politicas_negocio", {
 });
 db.politicas_negocio.createIndex({ nombre: 1, version: 1 }, { unique: true });
 db.politicas_negocio.createIndex({ estado: 1 });
+
+// Snapshots de política (control de versiones / auditoría; sin validación estricta aquí)
+ensureCollection("politicas_negocio_revisiones", {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["politicaId", "revision", "guardadoEn", "nombre", "versionNegocio", "estado", "nodos", "conexiones"],
+    properties: {
+      politicaId: { bsonType: "objectId" },
+      revision: { bsonType: "long" },
+      guardadoEn: { bsonType: "date" },
+      nombre: { bsonType: "string" },
+      descripcion: { bsonType: ["string", "null"] },
+      versionNegocio: { bsonType: "int" },
+      estado: { bsonType: "string" },
+      bpmnXml: { bsonType: ["string", "null"] },
+      fechaCreacionPolitica: { bsonType: ["date", "null"] },
+      lockVersionAlGuardar: { bsonType: ["long", "null"] },
+      nodos: { bsonType: "array" },
+      conexiones: { bsonType: "array" }
+    }
+  }
+});
+db.politicas_negocio_revisiones.createIndex({ politicaId: 1, revision: 1 }, { unique: true });
 
 // tramites
 ensureCollection("tramites", {

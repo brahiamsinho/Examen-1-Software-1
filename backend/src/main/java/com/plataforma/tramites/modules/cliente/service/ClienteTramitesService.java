@@ -11,6 +11,8 @@ import com.plataforma.tramites.modules.tramites.dto.RecorridoTramiteRequest;
 import com.plataforma.tramites.modules.tramites.dto.TramiteResponse;
 import com.plataforma.tramites.modules.tramites.service.TramitesService;
 import com.plataforma.tramites.shared.exception.ApiException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +30,7 @@ import java.util.UUID;
 @Service
 public class ClienteTramitesService {
 
+    private static final Logger log = LoggerFactory.getLogger(ClienteTramitesService.class);
     private static final String DOC_ESTADO_CARGADO = "CARGADO";
     private static final String RECORRIDO_ESTADO = "ACTIVO";
 
@@ -178,6 +181,7 @@ public class ClienteTramitesService {
             }
             return target;
         } catch (IOException ex) {
+            log.warn("No se pudo escribir en {}: {}", uploadRoot, ex.getMessage());
             throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo guardar el archivo.");
         }
     }

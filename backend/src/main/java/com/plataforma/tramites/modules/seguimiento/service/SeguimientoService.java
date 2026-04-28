@@ -28,7 +28,8 @@ public class SeguimientoService {
             "REQUERIMIENTO",
             "APROBACION",
             "RECHAZO",
-            "CIERRE");
+            "CIERRE",
+            "POLITICA_ASIGNADA");
 
     private final NotificacionRepository notificacionRepository;
     private final BitacoraEventoRepository bitacoraEventoRepository;
@@ -68,6 +69,19 @@ public class SeguimientoService {
         NotificacionDocument n = notificacionRepository
                 .findById(parseOid(id, "id"))
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Notificación no encontrada."));
+        n.setLeida(true);
+        return toNotifResponse(notificacionRepository.save(n));
+    }
+
+    /** Marca leída solo si la notificación pertenece al usuario indicado (portal cliente). */
+    public NotificacionResponse marcarNotificacionLeidaParaUsuario(String notificacionId, String usuarioIdHex) {
+        ObjectId uid = parseOid(usuarioIdHex, "usuarioId");
+        NotificacionDocument n = notificacionRepository
+                .findById(parseOid(notificacionId, "id"))
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Notificación no encontrada."));
+        if (!uid.equals(n.getUsuarioId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "La notificación no pertenece al usuario autenticado.");
+        }
         n.setLeida(true);
         return toNotifResponse(notificacionRepository.save(n));
     }

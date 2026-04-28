@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ApiService } from '@core/services/api.service';
+import { CuellosBotellaDashboardComponent } from './cuellos-botella/cuellos-botella-dashboard.component';
 import type { HealthResponseDto } from '@core/models/health-response.model';
 
 type ServiceProbeState = 'idle' | 'loading' | 'ok' | 'error';
@@ -13,7 +14,7 @@ interface ModulePreview {
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
-  imports: [],
+  imports: [CuellosBotellaDashboardComponent],
   templateUrl: './dashboard-page.component.html',
 })
 export class DashboardPageComponent implements OnInit {

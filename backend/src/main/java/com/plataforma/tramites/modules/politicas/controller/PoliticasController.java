@@ -1,6 +1,7 @@
 package com.plataforma.tramites.modules.politicas.controller;
 
 import com.plataforma.tramites.modules.politicas.dto.PoliticaNegocioResponse;
+import com.plataforma.tramites.modules.politicas.dto.PoliticaRevisionResumenResponse;
 import com.plataforma.tramites.modules.politicas.dto.PoliticaUpsertRequest;
 import com.plataforma.tramites.modules.politicas.service.PoliticasDominioService;
 import com.plataforma.tramites.modules.politicas.service.PoliticasService;
@@ -8,6 +9,7 @@ import com.plataforma.tramites.shared.dto.ModuleStatusResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,6 +48,20 @@ public class PoliticasController {
     @GetMapping("/{id}")
     public PoliticaNegocioResponse obtener(@PathVariable String id) {
         return politicasDominioService.obtener(id);
+    }
+
+    @GetMapping("/{id}/revisiones")
+    public Page<PoliticaRevisionResumenResponse> listarRevisiones(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(100, Math.max(1, size)));
+        return politicasDominioService.listarRevisiones(id, pageable);
+    }
+
+    @GetMapping("/{id}/revisiones/{revision}")
+    public PoliticaNegocioResponse obtenerRevision(@PathVariable String id, @PathVariable long revision) {
+        return politicasDominioService.obtenerRevision(id, revision);
     }
 
     @PostMapping

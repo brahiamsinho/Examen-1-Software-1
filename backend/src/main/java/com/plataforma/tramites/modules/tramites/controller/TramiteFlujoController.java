@@ -1,6 +1,6 @@
 package com.plataforma.tramites.modules.tramites.controller;
 
-import com.plataforma.tramites.modules.tramites.dto.SalidaFlujoDto;
+import com.plataforma.tramites.modules.tramites.dto.FlujoSalidasResponse;
 import com.plataforma.tramites.modules.tramites.dto.TramiteAprobarRamaParalelaRequest;
 import com.plataforma.tramites.modules.tramites.dto.TramiteFlujoAvanzarRequest;
 import com.plataforma.tramites.modules.tramites.dto.TramiteResponse;
@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/tramites/{tramiteId}/flujo")
 public class TramiteFlujoController {
@@ -27,7 +25,7 @@ public class TramiteFlujoController {
     }
 
     @GetMapping("/salidas")
-    public List<SalidaFlujoDto> salidas(@PathVariable String tramiteId) {
+    public FlujoSalidasResponse salidas(@PathVariable String tramiteId) {
         return tramiteFlujoService.listarSalidas(tramiteId);
     }
 

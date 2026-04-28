@@ -20,6 +20,16 @@ public class NodoPoliticaEmbeddable {
     private ObjectId areaId;
     private List<AsignacionResponsableEmbeddable> asignacionesResponsable = new ArrayList<>();
 
+    /**
+     * URL HTTPS de formulario externo (p. ej. Google Forms) asociado al nodo; el responsable lo abre al operar el flujo.
+     */
+    private String formularioExternoUrl;
+
+    /**
+     * Etiqueta de carril BPMN (p. ej. «Cliente», «Laboratorio») para alinear el modelado con diagramas tipo swimlane.
+     */
+    private String carrilBpmn;
+
     public String getIdNodo() {
         return idNodo;
     }
@@ -91,5 +101,21 @@ public class NodoPoliticaEmbeddable {
     public void setAsignacionesResponsable(List<AsignacionResponsableEmbeddable> asignacionesResponsable) {
         this.asignacionesResponsable =
                 asignacionesResponsable != null ? asignacionesResponsable : new ArrayList<>();
+    }
+
+    public String getFormularioExternoUrl() {
+        return formularioExternoUrl;
+    }
+
+    public void setFormularioExternoUrl(String formularioExternoUrl) {
+        this.formularioExternoUrl = formularioExternoUrl;
+    }
+
+    public String getCarrilBpmn() {
+        return carrilBpmn;
+    }
+
+    public void setCarrilBpmn(String carrilBpmn) {
+        this.carrilBpmn = carrilBpmn;
     }
 }

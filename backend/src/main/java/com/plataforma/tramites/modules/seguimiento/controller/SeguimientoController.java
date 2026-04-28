@@ -2,13 +2,16 @@ package com.plataforma.tramites.modules.seguimiento.controller;
 
 import com.plataforma.tramites.modules.seguimiento.dto.BitacoraEventoCreateRequest;
 import com.plataforma.tramites.modules.seguimiento.dto.BitacoraEventoResponse;
+import com.plataforma.tramites.modules.seguimiento.dto.FcmTokenRequest;
 import com.plataforma.tramites.modules.seguimiento.dto.NotificacionCreateRequest;
 import com.plataforma.tramites.modules.seguimiento.dto.NotificacionResponse;
+import com.plataforma.tramites.modules.seguimiento.service.FcmNotificationService;
 import com.plataforma.tramites.modules.seguimiento.service.SeguimientoService;
 import com.plataforma.tramites.shared.dto.ModuleStatusResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,14 +27,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class SeguimientoController {
 
     private final SeguimientoService seguimientoService;
+    private final FcmNotificationService fcmNotificationService;
 
-    public SeguimientoController(SeguimientoService seguimientoService) {
+    public SeguimientoController(SeguimientoService seguimientoService, FcmNotificationService fcmNotificationService) {
         this.seguimientoService = seguimientoService;
+        this.fcmNotificationService = fcmNotificationService;
     }
 
     @GetMapping("/status")
     public ModuleStatusResponse status() {
         return seguimientoService.moduleStatus();
+    }
+
+    @PostMapping("/notificaciones/fcm-token")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void registrarFcmToken(@Valid @RequestBody FcmTokenRequest body, Authentication auth) {
+        String usuarioId = auth.getName();
+        fcmNotificationService.registrarToken(usuarioId, body.fcmToken());
     }
 
     @GetMapping("/notificaciones")
@@ -49,8 +61,8 @@ public class SeguimientoController {
     }
 
     @PatchMapping("/notificaciones/{id}/leida")
-    public NotificacionResponse marcarLeida(@PathVariable String id) {
-        return seguimientoService.marcarNotificacionLeida(id);
+    public NotificacionResponse marcarLeida(Authentication auth, @PathVariable String id) {
+        return seguimientoService.marcarNotificacionLeidaParaUsuario(id, auth.getName());
     }
 
     @GetMapping("/bitacora/tramites/{tramiteId}")

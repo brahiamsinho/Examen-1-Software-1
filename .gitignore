@@ -64,3 +64,5 @@ yarn-error.log*
 *.local.db
 incidentes_emergencias_v1.pt
 backend/data/uploads/
+google-services.json
+firebase-credentials.json

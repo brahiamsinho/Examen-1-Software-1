@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "13f864392379685bb8935f93989ac3c08c74e36391499d2748e8e0657ef0ee90"
     },
+    "azure-ai-document-intelligence-ts": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "8b259ca1d1a44e7028eb33f318e961b961bc6b12c4e0e8469c805260dceb91b0"
+    },
     "caveman": {
       "source": "JuliusBrussee/caveman",
       "sourceType": "github",
@@ -35,6 +40,22 @@
       "source": "github/awesome-copilot",
       "sourceType": "github",
       "computedHash": "f1b9c6b1277178fc33e5a612761c1cd1cf6ab5f946d05d69d52026d142c0a0c1"
+    },
+    "machine-learning-ops-ml-pipeline": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "6a14e12aee6fc9deb85a2b604227909ec941f4ce79e1c7276641b5bba14ec363"
+    },
+    "requesting-code-review": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/requesting-code-review/SKILL.md",
+      "computedHash": "246e65cd72a7e360987d94e6c61564ce6d71c6361d1784d529d70e4cbbe8522d"
+    },
+    "text-to-speech": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "computedHash": "58648bd4ced042dc17c035505a2984ca82f1a373be68e6e083e0a317b76893a4"
     },
     "web-design-guidelines": {
       "source": "vercel-labs/agent-skills",

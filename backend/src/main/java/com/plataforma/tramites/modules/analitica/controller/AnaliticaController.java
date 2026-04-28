@@ -5,6 +5,7 @@ import com.plataforma.tramites.modules.analitica.dto.AnalisisRendimientoResponse
 import com.plataforma.tramites.modules.analitica.dto.RecomendacionPoliticaCreateRequest;
 import com.plataforma.tramites.modules.analitica.dto.RecomendacionPoliticaResponse;
 import com.plataforma.tramites.modules.analitica.service.AnaliticaService;
+import com.plataforma.tramites.modules.planificador.client.FastApiMlClient;
 import com.plataforma.tramites.shared.dto.ModuleStatusResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,15 +18,18 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analitica")
 public class AnaliticaController {
 
     private final AnaliticaService analiticaService;
+    private final FastApiMlClient fastApiMlClient;
 
-    public AnaliticaController(AnaliticaService analiticaService) {
+    public AnaliticaController(AnaliticaService analiticaService, FastApiMlClient fastApiMlClient) {
         this.analiticaService = analiticaService;
+        this.fastApiMlClient = fastApiMlClient;
     }
 
     @GetMapping("/status")
@@ -54,5 +58,11 @@ public class AnaliticaController {
     public RecomendacionPoliticaResponse crearRecomendacion(
             @Valid @RequestBody RecomendacionPoliticaCreateRequest body) {
         return analiticaService.crearRecomendacion(body);
+    }
+
+    /** Cuellos de botella detectados por IA (FastAPI) para una politica. */
+    @GetMapping("/politicas/{politicaId}/cuellos-botella")
+    public Map<String, Object> cuellosBotella(@PathVariable String politicaId) {
+        return fastApiMlClient.analizarCuellosBotella(politicaId);
     }
 }

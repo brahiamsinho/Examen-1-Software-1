@@ -12,3 +12,4 @@ class BottleneckSignal(BaseModel):
 class BottleneckAnalysisResult(BaseModel):
     status: str = Field(description="stub | ok | error en futuras versiones")
     signals: list[BottleneckSignal] = Field(default_factory=list)
+    summary: str = Field(default="")

@@ -1,277 +1,74 @@
-<section class="dp-graph-page" aria-labelledby="dp-graph-title">
+<section class="bpmn-page" aria-labelledby="bpmn-title">
   <header class="admin-page-head">
-    <p class="admin-page-kicker">Modelado</p>
-    <h2 id="dp-graph-title" class="admin-page-title">Editor de políticas (AntV X6)</h2>
+    <p class="admin-page-kicker">Modelado BPMN</p>
+    <h2 id="bpmn-title" class="admin-page-title">Editor BPMN de políticas</h2>
     <p class="admin-page-lead">
-      Cada nodo es un registro en <code>politicas_negocio.nodos</code> (<strong>areaId</strong>,
-      <strong>asignacionesResponsable</strong>). Cada flecha es una <code>conexión</code>: un mismo nodo puede tener
-      <strong>varias salidas</strong> (ej. atención al cliente → legal y otro departamento). Marcá la flecha y elegí
-      <strong>tipo de flujo PARALELO</strong> cuando varias ramas avanzan a la vez. Pan: clic derecho arrastrando. Zoom:
-      Ctrl + rueda.
-      <a routerLink="/disenador/politicas" class="dp-graph-inline-link">Catálogo de políticas</a>
+      Modelador BPMN de políticas con carriles por departamento, asignación de responsable y vínculo de formulario HTTPS
+      por nodo.
+      <a routerLink="/disenador/politicas" class="bpmn-inline-link">Volver al catálogo</a>
     </p>
   </header>
 
   @if (bannerMsg) {
-    <p
-      class="dp-graph-banner"
-      role="status"
-      [class.dp-graph-banner--error]="bannerKind === 'error'"
-    >
-      {{ bannerMsg }}
-    </p>
-  }
-
-  @if (politica && collabPeers.length) {
-    <p class="dp-graph-collab" role="status">
-      <strong>Colaboración en vivo:</strong>
-      @for (peer of collabPeers; track peer.sessionId) {
-        <span class="dp-graph-collab-peer">{{ peer.displayName || peer.sessionId }}</span>
-      }
-    </p>
+    <p class="bpmn-banner" role="status" [class.bpmn-banner--error]="bannerKind === 'error'">{{ bannerMsg }}</p>
   }
 
   @if (politica) {
-    <div class="admin-panel dp-graph-meta">
+    <div class="admin-panel bpmn-meta">
       <h3 class="admin-panel-title">Cabecera de política</h3>
       <div class="admin-form-grid">
         <label class="admin-field">
           <span>Nombre</span>
-          <input type="text" [(ngModel)]="metaNombre" name="m_nom" maxlength="200" />
+          <input type="text" [(ngModel)]="metaNombre" maxlength="200" />
         </label>
         <label class="admin-field">
           <span>Versión</span>
-          <input type="number" [(ngModel)]="metaVersion" name="m_ver" min="1" />
+          <input type="number" [(ngModel)]="metaVersion" min="1" />
         </label>
         <label class="admin-field">
           <span>Estado</span>
-          <select [(ngModel)]="metaEstado" name="m_est">
+          <select [(ngModel)]="metaEstado">
             <option value="BORRADOR">BORRADOR</option>
             <option value="PUBLICADA">PUBLICADA</option>
             <option value="INACTIVA">INACTIVA</option>
           </select>
         </label>
-        <label class="admin-field dp-graph-meta-desc">
+        <label class="admin-field bpmn-desc">
           <span>Descripción</span>
-          <textarea [(ngModel)]="metaDescripcion" name="m_desc" rows="2" maxlength="4000"></textarea>
+          <textarea [(ngModel)]="metaDescripcion" rows="2" maxlength="4000"></textarea>
         </label>
-      </div>
-      <div class="dp-graph-meta-actions">
-        <button type="button" class="admin-secondary-btn" (click)="guardarMetadatos()" [disabled]="savingMeta">
-          {{ savingMeta ? 'Guardando…' : 'Solo metadatos' }}
-        </button>
-        <button type="button" class="admin-primary-btn" (click)="guardarGrafo()" [disabled]="savingGrafo">
-          {{ savingGrafo ? 'Guardando…' : 'Guardar grafo completo' }}
-        </button>
       </div>
     </div>
   }
 
-  <div class="dp-graph-layout">
-    <nav class="dp-graph-toolbox" aria-label="Caja de herramientas del diagrama">
-      <p class="dp-graph-toolbox-title">Herramientas</p>
-      <button
-        type="button"
-        class="dp-graph-toolbox-btn"
-        [class.dp-graph-toolbox-btn--active]="toolMode === 'select'"
-        (click)="setToolSelect()"
-        title="Seleccionar y mover nodos"
-      >
-        <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
-          <path stroke-width="2" stroke-linecap="round" d="M4 20L9 4l3 8 8 3-16 5z" />
-        </svg>
-        <span>Seleccionar</span>
-      </button>
-      <button
-        type="button"
-        class="dp-graph-toolbox-btn"
-        [class.dp-graph-toolbox-btn--active]="toolMode === 'connect'"
-        (click)="setToolConnect()"
-        title="Clic origen, luego destino (repetible para varias flechas)"
-      >
-        <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
-          <path stroke-width="2" stroke-linecap="round" d="M8 5h12M8 12h8M8 19h12M4 5l-2 2 2 2M4 12l-2 2 2 2M4 19l-2 2 2 2" />
-        </svg>
-        <span>Conectar</span>
-      </button>
-      <div class="dp-graph-toolbox-divider" role="presentation"></div>
-      <button
-        type="button"
-        class="dp-graph-toolbox-btn"
-        (click)="undoGrafo()"
-        [disabled]="!canUndo"
-        title="Deshacer (Ctrl+Z)"
-        aria-keyshortcuts="Control+Z"
-      >
-        <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
-          <path
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M9 14L4 9l5-5M4 9h7.5A5.5 5.5 0 0 1 17 20"
-          />
-        </svg>
-        <span>Deshacer</span>
-      </button>
-      <button
-        type="button"
-        class="dp-graph-toolbox-btn"
-        (click)="redoGrafo()"
-        [disabled]="!canRedo"
-        title="Rehacer (Ctrl+Y o Ctrl+Mayús+Z)"
-        aria-keyshortcuts="Control+Y Control+Shift+Z"
-      >
-        <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
-          <path
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M15 14l5-5-5-5M20 9h-7.5A5.5 5.5 0 0 0 7 20"
-          />
-        </svg>
-        <span>Rehacer</span>
-      </button>
-      <div class="dp-graph-toolbox-divider" role="presentation"></div>
-      <button type="button" class="dp-graph-toolbox-btn" (click)="zoomIn()" title="Acercar">
-        <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
-          <circle cx="11" cy="11" r="6" stroke-width="2" />
-          <path stroke-width="2" stroke-linecap="round" d="M16 16l5 5M11 8v6M8 11h6" />
-        </svg>
-        <span>Zoom +</span>
-      </button>
-      <button type="button" class="dp-graph-toolbox-btn" (click)="zoomOut()" title="Alejar">
-        <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
-          <circle cx="11" cy="11" r="6" stroke-width="2" />
-          <path stroke-width="2" stroke-linecap="round" d="M16 16l5 5M8 11h6" />
-        </svg>
-        <span>Zoom −</span>
-      </button>
-      <button type="button" class="dp-graph-toolbox-btn" (click)="zoomFit()" title="Encajar todo en vista">
-        <svg class="dp-graph-toolbox-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
-          <path stroke-width="2" d="M4 9V4h5M15 4h5v5M4 15v5h5M20 15v5h-5" />
-        </svg>
-        <span>Encajar</span>
-      </button>
-      <p class="dp-graph-toolbox-hint">Puertos: círculos morados (entrada arriba, varias salidas abajo). Arrastrá entre puertos o usá «Conectar».</p>
-    </nav>
+  <app-bpmn-toolbar
+    [saving]="saving"
+    (newRequested)="onNewDiagram()"
+    (lanesRequested)="onSyncLanesByDepartment()"
+    (importRequested)="onImportRequest()"
+    (exportRequested)="onExportXml()"
+    (validateRequested)="onValidate()"
+    (saveRequested)="onSave()"
+  />
 
-    <div class="dp-graph-main">
-      <div class="dp-graph-toolbar" role="toolbar" aria-label="Agregar nodos al diagrama">
-        <span class="dp-graph-toolbar-label">Agregar nodo</span>
-        <button type="button" class="admin-secondary-btn dp-graph-tool" (click)="agregarNodo('INICIO')">Inicio</button>
-        <button type="button" class="admin-secondary-btn dp-graph-tool" (click)="agregarNodo('ACTIVIDAD')">
-          Actividad
-        </button>
-        <button type="button" class="admin-secondary-btn dp-graph-tool" (click)="agregarNodo('DECISION')">
-          Decisión
-        </button>
-        <button type="button" class="admin-secondary-btn dp-graph-tool" (click)="agregarNodo('PARALELO')">
-          Paralelo
-        </button>
-        <button type="button" class="admin-secondary-btn dp-graph-tool" (click)="agregarNodo('FIN')">Fin</button>
-        <button type="button" class="admin-secondary-btn dp-graph-tool" (click)="reiniciarVista()">Recargar política</button>
-      </div>
-      <div #graphWrap class="dp-graph-canvas-wrap">
-        <div
-          #graphHost
-          class="dp-graph-host"
-          tabindex="0"
-          role="application"
-          aria-label="Lienzo del diagrama de política"
-        ></div>
-        @if (remotePointerList.length) {
-          <div class="dp-graph-remote-layer" aria-hidden="true">
-            @for (r of remotePointerList; track r.sessionId) {
-              <div class="dp-graph-remote-cursor" [style.left.px]="r.px" [style.top.px]="r.py">
-                <span class="dp-graph-remote-cursor-dot" [style.background]="r.color"></span>
-                <div class="dp-graph-remote-cursor-card" [style.borderColor]="r.color">
-                  <span class="dp-graph-remote-cursor-name">{{ r.displayName }}</span>
-                  @if (r.selectionSummary) {
-                    <span class="dp-graph-remote-cursor-sel">{{ r.selectionSummary }}</span>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-      <p class="dp-graph-hint">
-        <strong>Relaciones:</strong> arrastrá desde un puerto de salida (abajo) hasta la entrada (arriba) de otro nodo.
-        Desde un mismo nodo podés sacar <strong>varias flechas</strong> a distintos departamentos. Con la herramienta
-        «Conectar», clic en origen y clic en destino (repetí para más ramas). <strong>Suprimir</strong> o
-        <strong>Retroceso</strong> borra lo seleccionado. <strong>Ctrl+Z / Ctrl+Y</strong> deshace y rehace cambios en
-        el diagrama. <strong>ESC</strong> cancela modo conectar.
-      </p>
-      <p class="dp-graph-manage-areas">
-        <a routerLink="/disenador/areas" class="dp-graph-inline-link">Gestionar áreas / departamentos</a>
-        <span class="dp-graph-manage-areas-sep">·</span>
-        Los responsables salen de usuarios con rol <code>RESPONSABLE_AREA</code> y el mismo <code>areaId</code> (asignación
-        en administración → Usuarios).
-      </p>
+  <input #xmlInput type="file" accept=".bpmn,.xml,text/xml,application/xml" hidden (change)="onFilePicked($event)" />
+
+  <div class="bpmn-layout">
+    <div class="bpmn-canvas-card">
+      <div #bpmnCanvas class="bpmn-canvas" role="application" aria-label="Canvas BPMN"></div>
     </div>
 
-    <aside class="dp-graph-inspector" aria-label="Propiedades del elemento seleccionado">
-      <h3 class="dp-graph-inspector-title">Inspector</h3>
-      @if (selectedNode) {
-        <p class="dp-graph-inspector-kicker">Nodo</p>
-        <div class="admin-form-grid dp-graph-inspector-fields">
-          <label class="admin-field dp-graph-field-span">
-            <span>Nombre visible</span>
-            <input type="text" [(ngModel)]="inspNodoNombre" name="in_n" />
-          </label>
-          <label class="admin-field dp-graph-field-span">
-            <span>Departamento (areas)</span>
-            <select [(ngModel)]="inspNodoAreaId" name="in_a" (change)="onCambioAreaNodo()">
-              <option value="">— Sin asignar —</option>
-              @for (a of areas; track a.id) {
-                <option [value]="a.id">{{ a.nombre }}</option>
-              }
-            </select>
-          </label>
-          <label class="admin-field dp-graph-field-span">
-            <span>Responsable del área</span>
-            <select [(ngModel)]="inspNodoResponsableId" name="in_r" [disabled]="!inspNodoAreaId">
-              <option value="">— Sin encargado —</option>
-              @for (u of usuariosDelArea; track u.id) {
-                <option [value]="u.id">{{ u.nombres }} {{ u.apellidos }} — {{ u.correo }}</option>
-              }
-            </select>
-          </label>
-        </div>
-        <button type="button" class="admin-primary-btn dp-graph-inspector-btn" (click)="aplicarInspectorNodo()">
-          Aplicar al nodo
-        </button>
-      } @else if (selectedEdge) {
-        <p class="dp-graph-inspector-kicker">Conexión</p>
-        <p class="dp-graph-edge-hint">
-          Varias conexiones saliendo del mismo nodo modelan bifurcaciones (p. ej. legal + otro). Usá
-          <strong>PARALELO</strong> cuando ambas ramas siguen en paralelo; <strong>ALTERNATIVO</strong> + condición para
-          ramas excluyentes.
-        </p>
-        <div class="admin-form-grid dp-graph-inspector-fields">
-          <label class="admin-field dp-graph-field-span">
-            <span>Tipo de flujo</span>
-            <select [(ngModel)]="inspEdgeTipoFlujo" name="in_tf">
-              @for (tf of tiposFlujo; track tf) {
-                <option [value]="tf">{{ tf }}</option>
-              }
-            </select>
-          </label>
-          <label class="admin-field dp-graph-field-span">
-            <span>Condición (opcional)</span>
-            <input type="text" [(ngModel)]="inspEdgeCondicion" name="in_co" />
-          </label>
-        </div>
-        <button type="button" class="admin-primary-btn dp-graph-inspector-btn" (click)="aplicarInspectorArista()">
-          Aplicar a la conexión
-        </button>
-      } @else {
-        <p class="dp-graph-inspector-empty">Seleccioná un nodo o una conexión en el diagrama.</p>
-        <p class="dp-graph-inspector-hint">
-          ¿Falta el listado de departamentos?
-          <a routerLink="/disenador/areas" class="dp-graph-inline-link">Gestionar áreas</a>
-        </p>
-      }
-    </aside>
+    <div class="bpmn-side">
+      <app-bpmn-properties-panel
+        [selectedElementLabel]="selectedElementLabel"
+        [isTaskLikeSelected]="isTaskLikeSelected"
+        [areas]="areas"
+        [usuariosDelArea]="usuariosDelArea"
+        [props]="props"
+        (areaChanged)="onPropsAreaChanged($event)"
+        (apply)="onApplyProps($event)"
+      />
+      <app-bpmn-validation-panel [issues]="validationIssues" />
+    </div>
   </div>
 </section>

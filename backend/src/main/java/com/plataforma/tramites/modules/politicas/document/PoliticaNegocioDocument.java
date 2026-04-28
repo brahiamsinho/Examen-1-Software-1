@@ -24,6 +24,8 @@ public class PoliticaNegocioDocument {
     private int version;
     private String estado;
     private Instant fechaCreacion;
+    /** Fuente canónica del diseño BPMN (XML). */
+    private String bpmnXml;
     private List<NodoPoliticaEmbeddable> nodos = new ArrayList<>();
     private List<ConexionFlujoEmbeddable> conexiones = new ArrayList<>();
 
@@ -80,6 +82,14 @@ public class PoliticaNegocioDocument {
 
     public void setFechaCreacion(Instant fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public String getBpmnXml() {
+        return bpmnXml;
+    }
+
+    public void setBpmnXml(String bpmnXml) {
+        this.bpmnXml = bpmnXml;
     }
 
     public List<NodoPoliticaEmbeddable> getNodos() {

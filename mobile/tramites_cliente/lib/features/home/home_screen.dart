@@ -107,6 +107,16 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Nuevo trámite'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => context.go('/notificaciones'),
+            tooltip: 'Notificaciones',
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => context.go('/perfil'),
+            tooltip: 'Mi perfil',
+          ),
           TextButton(
             onPressed: () => context.go('/mis-tramites'),
             child: const Text('Mis trámites', style: TextStyle(color: Colors.white)),

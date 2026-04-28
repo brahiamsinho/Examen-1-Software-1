@@ -48,15 +48,29 @@ export class AreasApiService {
     }
     if (value && typeof value === 'object') {
       const rec = value as Record<string, unknown>;
-      const oid = rec['$oid'];
-      if (typeof oid === 'string') {
-        return oid;
+      const directKeys = ['$oid', 'oid', 'hexString', 'id', '_id'] as const;
+      for (const key of directKeys) {
+        const candidate = rec[key];
+        if (typeof candidate === 'string' && candidate.trim()) {
+          return candidate;
+        }
       }
-      const hex = rec['hexString'];
-      if (typeof hex === 'string') {
-        return hex;
+      const toHex = rec['toHexString'];
+      if (typeof toHex === 'function') {
+        const resolved = String((toHex as () => unknown).call(value));
+        if (resolved && resolved !== '[object Object]') {
+          return resolved;
+        }
+      }
+      const toStr = rec['toString'];
+      if (typeof toStr === 'function') {
+        const resolved = String((toStr as () => unknown).call(value));
+        if (resolved && resolved !== '[object Object]') {
+          return resolved;
+        }
       }
     }
-    return String(value ?? '');
+    const fallback = String(value ?? '');
+    return fallback === '[object Object]' ? '' : fallback;
   }
 }

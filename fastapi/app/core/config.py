@@ -11,6 +11,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        protected_namespaces=(),
     )
 
     app_env: str = "development"
@@ -20,6 +21,10 @@ class Settings(BaseSettings):
     port: int = 8000
     log_level: str = "INFO"
     cors_origins: str = "*"
+
+    mongodb_uri: str = "mongodb://localhost:27017"
+    mongodb_db: str = "tramitesdb"
+    model_dir: str = "/data/models"
 
     @field_validator("cors_origins", mode="before")
     @classmethod

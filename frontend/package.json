@@ -19,10 +19,8 @@
     "@angular/platform-browser": "^17.3.0",
     "@angular/platform-browser-dynamic": "^17.3.0",
     "@angular/router": "^17.3.0",
-    "@antv/x6": "^2.19.2",
-    "@antv/x6-plugin-history": "^2.2.4",
-    "@antv/x6-plugin-keyboard": "^2.2.3",
-    "@antv/x6-plugin-selection": "^2.2.2",
+    "bpmn-js": "^18.15.0",
+    "bpmn-moddle": "^10.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"

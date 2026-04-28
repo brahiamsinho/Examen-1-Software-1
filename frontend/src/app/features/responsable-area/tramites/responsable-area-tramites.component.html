@@ -159,9 +159,28 @@
       <button type="button" class="ra-flujo-close" (click)="closeFlujo()" aria-label="Cerrar">×</button>
     </div>
     <p class="ra-flujo-meta">
-      Nodo actual: <code>{{ flujoTramite.nodoActualId ?? '—' }}</code> · Área actual:
+      Nodo actual:
+      <code>{{ flujoSalidas?.nodoActualId ?? flujoTramite.nodoActualId ?? '—' }}</code>
+      @if (flujoSalidas?.nodoActualNombre) {
+        — <strong>{{ flujoSalidas?.nodoActualNombre }}</strong>
+      }
+      · Área actual:
       <code>{{ flujoTramite.areaActualId ?? '—' }}</code>
+      @if (flujoSalidas?.nodoActualCarrilBpmn) {
+        · Carril BPMN: <strong>{{ flujoSalidas?.nodoActualCarrilBpmn }}</strong>
+      }
     </p>
+    @if (flujoSalidas?.formularioExternoUrl) {
+      <p class="ra-flujo-form">
+        <a
+          class="admin-secondary-btn"
+          [href]="flujoSalidas!.formularioExternoUrl!"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Abrir formulario / checklist (HTTPS)</a
+        >
+      </p>
+    }
     <label class="ra-flujo-field">
       <span>Observación (opcional)</span>
       <input type="text" [(ngModel)]="flujoObs" name="flujo_obs" maxlength="500" />

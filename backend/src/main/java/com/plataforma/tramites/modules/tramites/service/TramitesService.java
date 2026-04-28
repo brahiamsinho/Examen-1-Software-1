@@ -4,6 +4,7 @@ import com.plataforma.tramites.modules.politicas.document.PoliticaNegocioDocumen
 import com.plataforma.tramites.modules.politicas.repository.PoliticaNegocioRepository;
 import com.plataforma.tramites.modules.politicas.support.PoliticaNodoInicialResolver;
 import com.plataforma.tramites.modules.politicas.support.PoliticaNodoInicialResolver.NodoInicioPolitica;
+import com.plataforma.tramites.modules.seguimiento.service.ClienteTramiteEventoNotificacionService;
 import com.plataforma.tramites.modules.tramites.document.RecorridoTramiteDocument;
 import com.plataforma.tramites.modules.tramites.document.TramiteDocument;
 import com.plataforma.tramites.modules.tramites.dto.RecorridoTramiteRequest;
@@ -48,6 +49,7 @@ public class TramitesService {
     private final PoliticaNegocioRepository politicaNegocioRepository;
     private final PoliticaNodoInicialResolver politicaNodoInicialResolver;
     private final TramiteFlujoAutorizacionService tramiteFlujoAutorizacionService;
+    private final ClienteTramiteEventoNotificacionService clienteTramiteEventoNotificacionService;
     private final String intakeNodeIdConfig;
 
     public TramitesService(
@@ -56,12 +58,14 @@ public class TramitesService {
             PoliticaNegocioRepository politicaNegocioRepository,
             PoliticaNodoInicialResolver politicaNodoInicialResolver,
             TramiteFlujoAutorizacionService tramiteFlujoAutorizacionService,
+            ClienteTramiteEventoNotificacionService clienteTramiteEventoNotificacionService,
             @Value("${app.workflow.intake-node-id:ATENCION_CLIENTE}") String intakeNodeIdConfig) {
         this.tramiteRepository = tramiteRepository;
         this.recorridoTramiteRepository = recorridoTramiteRepository;
         this.politicaNegocioRepository = politicaNegocioRepository;
         this.politicaNodoInicialResolver = politicaNodoInicialResolver;
         this.tramiteFlujoAutorizacionService = tramiteFlujoAutorizacionService;
+        this.clienteTramiteEventoNotificacionService = clienteTramiteEventoNotificacionService;
         this.intakeNodeIdConfig = intakeNodeIdConfig != null ? intakeNodeIdConfig.trim() : "ATENCION_CLIENTE";
     }
 
@@ -154,7 +158,15 @@ public class TramitesService {
         String nombrePolitica = politica.getNombre() != null ? politica.getNombre() : "(sin nombre)";
         rec.setObservacion("Planificador asignó política «" + nombrePolitica + "» y ubicación en nodo inicial del flujo.");
         registrarRecorrido(tramiteId, rec);
-        return toResponse(buscar(tramiteId));
+        TramiteDocument guardado = buscar(tramiteId);
+        if (guardado.getClienteId() != null) {
+            clienteTramiteEventoNotificacionService.notificarPoliticaAsignada(
+                    guardado.getClienteId().toHexString(),
+                    guardado.getId().toHexString(),
+                    guardado.getCodigo(),
+                    nombrePolitica);
+        }
+        return toResponse(guardado);
     }
 
     public TramiteResponse crear(TramiteCreateRequest body) {

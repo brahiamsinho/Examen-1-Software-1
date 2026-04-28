@@ -40,6 +40,9 @@ class AuthRepository {
       accessToken: token,
       rolCodigo: map['rolCodigo'] as String? ?? 'CLIENTE',
       nombres: map['nombres'] as String? ?? '',
+      apellidos: map['apellidos'] as String?,
+      correo: map['correo'] as String? ?? '',
+      expiresInSeconds: (map['expiresInSeconds'] as num?)?.toInt(),
     );
   }
 }
@@ -49,11 +52,17 @@ class LoginResult {
     required this.accessToken,
     required this.rolCodigo,
     required this.nombres,
+    this.apellidos,
+    required this.correo,
+    this.expiresInSeconds,
   });
 
   final String accessToken;
   final String rolCodigo;
   final String nombres;
+  final String? apellidos;
+  final String correo;
+  final int? expiresInSeconds;
 }
 
 class AuthException implements Exception {

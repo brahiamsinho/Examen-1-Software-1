@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '@core/auth/auth.service';
 import { ResponsableAreaContextService } from '@features/responsable-area/data/responsable-area-context.service';
 import { TramitesApiService } from '@features/responsable-area/data/tramites-api.service';
-import type { SalidaFlujoDto } from '@features/responsable-area/models/salida-flujo.model';
+import type { FlujoSalidasDto, SalidaFlujoDto } from '@features/responsable-area/models/salida-flujo.model';
 import {
   TRAMITE_ESTADOS,
   TRAMITE_PRIORIDADES,
@@ -45,6 +45,7 @@ export class ResponsableAreaTramitesComponent implements OnInit {
 
   /** Panel de acciones de flujo (salidas / paralelo). */
   flujoTramite: TramiteDto | null = null;
+  flujoSalidas: FlujoSalidasDto | null = null;
   salidas: SalidaFlujoDto[] = [];
   loadingFlujo = false;
   flujoError = '';
@@ -145,13 +146,15 @@ export class ResponsableAreaTramitesComponent implements OnInit {
 
   openFlujo(t: TramiteDto): void {
     this.flujoTramite = t;
+    this.flujoSalidas = null;
     this.salidas = [];
     this.flujoError = '';
     this.flujoObs = '';
     this.loadingFlujo = true;
     this.api.getSalidas(t.id).subscribe({
-      next: (s) => {
-        this.salidas = s;
+      next: (resp) => {
+        this.flujoSalidas = resp;
+        this.salidas = resp.salidas ?? [];
         this.loadingFlujo = false;
       },
       error: (e) => {
@@ -163,6 +166,7 @@ export class ResponsableAreaTramitesComponent implements OnInit {
 
   closeFlujo(): void {
     this.flujoTramite = null;
+    this.flujoSalidas = null;
     this.salidas = [];
     this.flujoError = '';
     this.flujoObs = '';
